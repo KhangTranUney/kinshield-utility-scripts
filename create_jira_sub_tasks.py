@@ -13,6 +13,7 @@ STORIES_FILE = SCRIPTS_DIR / "stories.md"
 
 TEAM_FIELD = "customfield_10361"
 DEV_COMPONENTS = {"Android", "iOS"}
+QA_COMPONENT = {"id": "11175", "name": "QA"}
 EXCLUDE_ISSUE_TYPES = {"Sub-task", "Spike"}
 
 
@@ -163,7 +164,7 @@ def build_plan(story, qa_assignee_id=""):
         tasks.append({
             "summary": f"[QA]{story['summary']}",
             "type": "QA",
-            "components": story["components_raw"],
+            "components": [QA_COMPONENT],
             "labels": story["labels"],
             "team": story[TEAM_FIELD],
             "assignee": qa_assignee_id or None,
