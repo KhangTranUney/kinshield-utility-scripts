@@ -1,0 +1,37 @@
+# Stories
+# One entry per line. Lines starting with # are ignored.
+# Accepts ticket ID or full Jira link, e.g.:
+#   SAF-260
+#   https://aottws.atlassian.net/browse/SAF-260
+SAF-260
+SAF-261
+SAF-467
+SAF-468
+SAF-262
+SAF-263
+SAF-482
+SAF-483
+SAF-533
+SAF-535
+SAF-475
+SAF-476
+SAF-460
+SAF-566
+SAF-567
+SAF-568
+SAF-277
+SAF-278
+SAF-281
+SAF-282
+SAF-279
+SAF-280
+SAF-421
+SAF-564
+SAF-438
+SAF-565
+SAF-419
+SAF-563
+SAF-559
+SAF-562
+SAF-512
+SAF-658
