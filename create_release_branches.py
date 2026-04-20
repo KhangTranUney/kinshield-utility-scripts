@@ -131,6 +131,20 @@ def bump_gradle_properties(repo_path, version_name):
     print(f"  Updated gradle.properties: VERSION={version_name}")
 
 
+def bump_ci_config(repo_path, branch_name):
+    """Update ci.config.yml: set branch under the kinshield-features-version-android repo entry."""
+    ci_path = repo_path / "ci.config.yml"
+    content = ci_path.read_text()
+    # Match the repo URL line then replace the immediately following branch line
+    content = re.sub(
+        r"(repo\s*:\s*[\"']?https://github\.com/uneycom/kinshield-features-version-android[\"']?\s*\n\s*branch\s*:\s*).*",
+        rf'\g<1>"{branch_name}"',
+        content,
+    )
+    ci_path.write_text(content)
+    print(f"  Updated ci.config.yml: kinshield-features-version-android branch={branch_name}")
+
+
 def create_and_push_branch(repo, repo_path, branch_name, release_version):
     result = run(["git", "branch", "-r", "--list", f"origin/{branch_name}"], cwd=repo_path)
     if result.stdout.strip():
@@ -141,7 +155,8 @@ def create_and_push_branch(repo, repo_path, branch_name, release_version):
 
     if repo in ("kinshield-android", "kinshield-companion-android"):
         bump_version_properties(repo_path, release_version)
-        run(["git", "add", "config/version/version.properties"], cwd=repo_path)
+        bump_ci_config(repo_path, branch_name)
+        run(["git", "add", "config/version/version.properties", "ci.config.yml"], cwd=repo_path)
         run(["git", "commit", "-m", f"Set release version {release_version}"], cwd=repo_path)
     elif repo == "kinshield-core-features-android":
         bump_gradle_properties(repo_path, release_version)
