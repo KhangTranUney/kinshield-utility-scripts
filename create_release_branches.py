@@ -102,13 +102,52 @@ def pull_latest_develop(repo_path):
     run(["git", "pull", "origin", "develop"], cwd=repo_path)
 
 
-def create_and_push_branch(repo_path, branch_name):
+def bump_version_properties(repo_path, version_name):
+    """Update config/version/version.properties: set VERSION_NAME and bump VERSION_CODE to next 100."""
+    props_path = repo_path / "config" / "version" / "version.properties"
+    content = props_path.read_text()
+
+    # Update VERSION_NAME
+    content = re.sub(r"(?m)^VERSION_NAME\s*=.*$", f"VERSION_NAME={version_name}", content)
+
+    # Bump VERSION_CODE to next multiple of 100
+    match = re.search(r"(?m)^VERSION_CODE\s*=\s*(\d+)$", content)
+    if not match:
+        raise RuntimeError(f"VERSION_CODE not found in {props_path}")
+    current_code = int(match.group(1))
+    new_code = (current_code // 100 + 1) * 100
+    content = re.sub(r"(?m)^VERSION_CODE\s*=\s*\d+$", f"VERSION_CODE={new_code}", content)
+
+    props_path.write_text(content)
+    print(f"  Updated {props_path.relative_to(repo_path)}: VERSION_NAME={version_name}, VERSION_CODE {current_code} -> {new_code}")
+
+
+def bump_gradle_properties(repo_path, version_name):
+    """Update gradle.properties: set VERSION to version_name."""
+    props_path = repo_path / "gradle.properties"
+    content = props_path.read_text()
+    content = re.sub(r"(?m)^VERSION\s*=.*$", f"VERSION={version_name}", content)
+    props_path.write_text(content)
+    print(f"  Updated gradle.properties: VERSION={version_name}")
+
+
+def create_and_push_branch(repo, repo_path, branch_name, release_version):
     result = run(["git", "branch", "-r", "--list", f"origin/{branch_name}"], cwd=repo_path)
     if result.stdout.strip():
         print(f"  Branch '{branch_name}' already exists on remote, skipping.")
         return
     run(["git", "checkout", "develop"], cwd=repo_path)
     run(["git", "checkout", "-b", branch_name], cwd=repo_path)
+
+    if repo in ("kinshield-android", "kinshield-companion-android"):
+        bump_version_properties(repo_path, release_version)
+        run(["git", "add", "config/version/version.properties"], cwd=repo_path)
+        run(["git", "commit", "-m", f"Set release version {release_version}"], cwd=repo_path)
+    elif repo == "kinshield-core-features-android":
+        bump_gradle_properties(repo_path, release_version)
+        run(["git", "add", "gradle.properties"], cwd=repo_path)
+        run(["git", "commit", "-m", f"Set release version {release_version}"], cwd=repo_path)
+
     run(["git", "push", "-u", "origin", branch_name], cwd=repo_path)
 
 
@@ -213,7 +252,7 @@ def main():
         path = repo_paths[repo]
         print(f"[{repo}] Creating and pushing '{branch_name}'...")
         try:
-            create_and_push_branch(path, branch_name)
+            create_and_push_branch(repo, path, branch_name, release_version)
             print(f"  Done.")
         except RuntimeError as e:
             print(f"  ERROR: {e}")
