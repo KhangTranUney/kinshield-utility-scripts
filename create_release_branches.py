@@ -157,11 +157,11 @@ def create_and_push_branch(repo, repo_path, branch_name, release_version):
         bump_version_properties(repo_path, release_version)
         bump_ci_config(repo_path, branch_name)
         run(["git", "add", "config/version/version.properties", "ci.config.yml"], cwd=repo_path)
-        run(["git", "commit", "-m", f"Set release version {release_version}"], cwd=repo_path)
+        run(["git", "commit", "-m", f"[Init Release] {release_version}"], cwd=repo_path)
     elif repo == "kinshield-core-features-android":
         bump_gradle_properties(repo_path, release_version)
         run(["git", "add", "gradle.properties"], cwd=repo_path)
-        run(["git", "commit", "-m", f"Set release version {release_version}"], cwd=repo_path)
+        run(["git", "commit", "-m", f"[Init Release] {release_version}"], cwd=repo_path)
 
     run(["git", "push", "-u", "origin", branch_name], cwd=repo_path)
 
