@@ -144,15 +144,7 @@ def build_plan(story, qa_assignee_id=""):
     for comp in dev_comps:
         comp_raw = [c for c in story["components_raw"] if c["name"] == comp]
         tasks.append({
-            "summary": f"[{comp}] Implement UI",
-            "type": "Dev",
-            "components": comp_raw,
-            "labels": story["labels"],
-            "team": story[TEAM_FIELD],
-            "assignee": None,
-        })
-        tasks.append({
-            "summary": f"[{comp}] Integrate API",
+            "summary": f"[Dev]{story['summary']}",
             "type": "Dev",
             "components": comp_raw,
             "labels": story["labels"],
@@ -259,6 +251,7 @@ def main():
         for s in active_future:
             groups.append({"label": f"{s['name']} ({s['state']})", "type": "sprint", "id": s["id"]})
         groups.append({"label": "Backlog (no sprint)", "type": "backlog", "id": board_id})
+        groups.append({"label": "Use stories.md directly", "type": "stories_md", "id": None})
 
         for i, g in enumerate(groups, 1):
             print(f"  {i}. {g['label']}")
@@ -271,22 +264,25 @@ def main():
                 break
             print(f"  Please enter a number between 1 and {len(groups)}.")
 
-        print(f"\nFetching '{selected['label']}'...")
-        if selected["type"] == "sprint":
-            issues = fetch_sprint_issues(base_url, auth, selected["id"])
+        if selected["type"] == "stories_md":
+            print(f"\nUsing existing stories.md...")
         else:
-            issues = fetch_backlog_issues(base_url, auth, board_id)
+            print(f"\nFetching '{selected['label']}'...")
+            if selected["type"] == "sprint":
+                issues = fetch_sprint_issues(base_url, auth, selected["id"])
+            else:
+                issues = fetch_backlog_issues(base_url, auth, board_id)
 
-        tasks = filter_backlog_tasks(issues)
-        print(f"Found {len(tasks)} Backlog tasks (sub-tasks excluded).\n")
-        for issue in tasks:
-            print(f"  [{issue['key']}] [{issue['fields']['issuetype']['name']}] {issue['fields']['summary']}")
+            tasks = filter_backlog_tasks(issues)
+            print(f"Found {len(tasks)} Backlog tasks (sub-tasks excluded).\n")
+            for issue in tasks:
+                print(f"  [{issue['key']}] [{issue['fields']['issuetype']['name']}] {issue['fields']['summary']}")
 
-        confirm_or_cancel(f"Update stories.md with these {len(tasks)} tasks? Press Enter to continue or Esc to cancel")
+            confirm_or_cancel(f"Update stories.md with these {len(tasks)} tasks? Press Enter to continue or Esc to cancel")
 
-        keys = [i["key"] for i in tasks]
-        write_stories_md(keys)
-        print(f"stories.md updated with {len(keys)} keys.\n")
+            keys = [i["key"] for i in tasks]
+            write_stories_md(keys)
+            print(f"stories.md updated with {len(keys)} keys.\n")
 
     # ── Step 1: Fetch and display all stories ─────────────────────────────────
     story_keys = read_story_keys()
