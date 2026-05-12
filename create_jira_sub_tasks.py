@@ -86,10 +86,13 @@ def fetch_backlog_issues(base_url, auth, board_id):
     return response.json()["issues"]
 
 
+INCLUDE_STATUSES = {"Backlog", "Ready for Development"}
+
+
 def filter_backlog_tasks(issues):
     return [
         i for i in issues
-        if i["fields"]["status"]["name"] == "Backlog"
+        if i["fields"]["status"]["name"] in INCLUDE_STATUSES
         and i["fields"]["issuetype"]["name"] not in EXCLUDE_ISSUE_TYPES
     ]
 
@@ -137,6 +140,14 @@ def parse_story(data, base_url):
     }
 
 
+def parse_summary_tag(summary):
+    """Extract leading [Tag] from summary, e.g. '[Droid] Some title' -> ('[Droid]', 'Some title')."""
+    m = re.match(r'(\[[^\]]+\])\s*(.*)', summary)
+    if m:
+        return m.group(1), m.group(2)
+    return "", summary
+
+
 def build_plan(story, qa_assignee_id=""):
     tasks = []
     dev_comps = [c for c in story["components"] if c in DEV_COMPONENTS]
@@ -153,14 +164,17 @@ def build_plan(story, qa_assignee_id=""):
         })
 
     if dev_comps:
-        tasks.append({
-            "summary": f"[QA]{story['summary']}",
-            "type": "QA",
-            "components": [QA_COMPONENT],
-            "labels": story["labels"],
-            "team": story[TEAM_FIELD],
-            "assignee": qa_assignee_id or None,
-        })
+        tag, clean_title = parse_summary_tag(story["summary"])
+        qa_prefix = f"[QA]{tag} " if tag else "[QA] "
+        for action in ("Execute test", "Create test cases"):
+            tasks.append({
+                "summary": f"{qa_prefix}{action} - {clean_title}",
+                "type": "QA",
+                "components": [QA_COMPONENT],
+                "labels": story["labels"],
+                "team": story[TEAM_FIELD],
+                "assignee": qa_assignee_id or None,
+            })
 
     return tasks
 
@@ -274,7 +288,7 @@ def main():
                 issues = fetch_backlog_issues(base_url, auth, board_id)
 
             tasks = filter_backlog_tasks(issues)
-            print(f"Found {len(tasks)} Backlog tasks (sub-tasks excluded).\n")
+            print(f"Found {len(tasks)} Backlog / Ready for Development tasks (sub-tasks excluded).\n")
             for issue in tasks:
                 print(f"  [{issue['key']}] [{issue['fields']['issuetype']['name']}] {issue['fields']['summary']}")
 
