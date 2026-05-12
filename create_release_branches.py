@@ -13,7 +13,7 @@ BASE_DIR = SCRIPT_DIR.parent
 
 REPOS = [
     "kinshield-android",
-    "kinshield-companion-android",
+    # "kinshield-companion-android",
     "kinshield-core-features-android",
     "kinshield-features-version-android",
 ]
