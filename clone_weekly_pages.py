@@ -56,8 +56,16 @@ def get_credentials():
     email = os.environ.get("CONFLUENCE_EMAIL")
     token = os.environ.get("CONFLUENCE_TOKEN")
     if not email or not token:
-        print("ERROR: Set CONFLUENCE_EMAIL and CONFLUENCE_TOKEN in .env file.")
-        print(f"  Expected at: {Path(__file__).resolve().parent / '.env'}")
+        env_path = Path(__file__).resolve().parent / ".env"
+        print("ERROR: Missing credentials.\n")
+        print(f"Create a .env file at: {env_path}\n")
+        print("With the following content:")
+        print("  CONFLUENCE_EMAIL=your-email@example.com")
+        print("  CONFLUENCE_TOKEN=your-api-token\n")
+        print("To generate an API token:")
+        print("  1. Go to https://id.atlassian.com/manage-profile/security/api-tokens")
+        print("  2. Click 'Create API token'")
+        print("  3. Copy the token and paste it in the .env file")
         sys.exit(1)
     return email, token
 
