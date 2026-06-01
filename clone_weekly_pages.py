@@ -79,6 +79,24 @@ def previous_week_info():
     return week_number, prev_monday, prev_friday
 
 
+def _check_api_response(data, method, url):
+    """Check an API response dict for errors and exit with a clear message."""
+    if "statusCode" in data and data["statusCode"] >= 400:
+        status = data["statusCode"]
+        message = data.get("message", "Unknown error")
+        print(f"\nERROR: Confluence API {method} {url} returned {status}")
+        print(f"  {message}")
+        if status == 401:
+            print("\n  Your credentials are invalid. Check CONFLUENCE_EMAIL and CONFLUENCE_TOKEN in .env")
+        elif status == 403:
+            print("\n  Your account does not have permission to use Confluence.")
+            print("  Try regenerating your API token at:")
+            print("    https://id.atlassian.com/manage-profile/security/api-tokens")
+        elif status == 404:
+            print("\n  The requested page was not found. Check that the template page IDs are correct.")
+        sys.exit(1)
+
+
 def api_get(endpoint, email, token):
     """GET from Confluence REST API via curl (avoids Python SSL issues on macOS)."""
     url = f"{CONFLUENCE_BASE}/rest/api/{endpoint}"
@@ -88,7 +106,9 @@ def api_get(endpoint, email, token):
     )
     if result.returncode != 0:
         raise RuntimeError(f"curl GET failed: {result.stderr}")
-    return json.loads(result.stdout)
+    data = json.loads(result.stdout)
+    _check_api_response(data, "GET", url)
+    return data
 
 
 def api_post(endpoint, payload, email, token):
@@ -107,7 +127,9 @@ def api_post(endpoint, payload, email, token):
     )
     if result.returncode != 0:
         raise RuntimeError(f"curl POST failed: {result.stderr}")
-    return json.loads(result.stdout)
+    data = json.loads(result.stdout)
+    _check_api_response(data, "POST", url)
+    return data
 
 
 def transform_title(original_title, week_num, monday, friday):
