@@ -17,6 +17,30 @@ QA_COMPONENT = {"id": "11175", "name": "QA"}
 EXCLUDE_ISSUE_TYPES = {"Sub-task", "Spike"}
 
 
+def _check_response(response, context=""):
+    """Check a requests response for errors and exit with a clear message."""
+    if response.ok:
+        return
+    status = response.status_code
+    try:
+        body = response.json()
+        message = body.get("message") or body.get("errorMessages", [response.text])[0]
+    except Exception:
+        message = response.text or "Unknown error"
+    label = f" ({context})" if context else ""
+    print(f"\nERROR: Jira API returned {status}{label}")
+    print(f"  {message}")
+    if status == 401:
+        print("\n  Your credentials are invalid. Check JIRA_EMAIL and JIRA_API_TOKEN in .env")
+    elif status == 403:
+        print("\n  Your account does not have permission for this action.")
+        print("  Check that your API token is still valid at:")
+        print("    https://id.atlassian.com/manage-profile/security/api-tokens")
+    elif status == 404:
+        print("\n  The requested resource was not found. Check that the issue key or board ID is correct.")
+    sys.exit(1)
+
+
 def load_env():
     env_path = SCRIPTS_DIR / ".env"
     if not env_path.exists():
@@ -68,21 +92,21 @@ def extract_board_id(board_url):
 def fetch_sprints(base_url, auth, board_id):
     url = f"{base_url}/rest/agile/1.0/board/{board_id}/sprint?maxResults=50"
     response = requests.get(url, auth=auth, headers={"Accept": "application/json"})
-    response.raise_for_status()
+    _check_response(response, f"fetching sprints for board {board_id}")
     return response.json()["values"]
 
 
 def fetch_sprint_issues(base_url, auth, sprint_id):
     url = f"{base_url}/rest/agile/1.0/sprint/{sprint_id}/issue?maxResults=200&fields=summary,status,issuetype"
     response = requests.get(url, auth=auth, headers={"Accept": "application/json"})
-    response.raise_for_status()
+    _check_response(response, f"fetching issues for sprint {sprint_id}")
     return response.json()["issues"]
 
 
 def fetch_backlog_issues(base_url, auth, board_id):
     url = f"{base_url}/rest/agile/1.0/board/{board_id}/backlog?maxResults=200&fields=summary,status,issuetype"
     response = requests.get(url, auth=auth, headers={"Accept": "application/json"})
-    response.raise_for_status()
+    _check_response(response, f"fetching backlog for board {board_id}")
     return response.json()["issues"]
 
 
@@ -103,9 +127,7 @@ def fetch_story(base_url, auth, key):
     fields = f"summary,status,labels,components,{TEAM_FIELD},subtasks"
     url = f"{base_url}/rest/api/3/issue/{key}?fields={fields}"
     response = requests.get(url, auth=auth, headers={"Accept": "application/json"})
-    if response.status_code == 404:
-        raise RuntimeError(f"Issue {key} not found.")
-    response.raise_for_status()
+    _check_response(response, f"fetching issue {key}")
     return response.json()
 
 
@@ -114,8 +136,8 @@ def fetch_existing_subtask_titles(base_url, auth, subtasks):
     for sub in subtasks:
         url = f"{base_url}/rest/api/3/issue/{sub['id']}?fields=summary"
         response = requests.get(url, auth=auth, headers={"Accept": "application/json"})
-        if response.status_code == 200:
-            titles.add(response.json()["fields"]["summary"])
+        _check_response(response, f"fetching subtask {sub['id']}")
+        titles.add(response.json()["fields"]["summary"])
     return titles
 
 
@@ -197,11 +219,9 @@ def create_sub_task(base_url, auth, project_key, parent_key, task):
     response = requests.post(
         url, json={"fields": fields}, auth=auth, headers={"Accept": "application/json"}
     )
-    if response.status_code == 201:
-        data = response.json()
-        return data["key"], f"{base_url}/browse/{data['key']}"
-    else:
-        raise RuntimeError(f"{response.status_code} {response.text}")
+    _check_response(response, f"creating sub-task for {parent_key}")
+    data = response.json()
+    return data["key"], f"{base_url}/browse/{data['key']}"
 
 
 def parse_key(line):
@@ -303,20 +323,16 @@ def main():
     print("=== Fetching Stories ===\n")
     stories = []
     for key in story_keys:
-        try:
-            data = fetch_story(base_url, auth, key)
-            story = parse_story(data, base_url)
-            stories.append(story)
-            print(f"  [{story['key']}] {story['summary']}")
-            print(f"    Link       : {story['link']}")
-            print(f"    Status     : {story['status']}")
-            print(f"    Team       : {', '.join(story['team']) or 'N/A'}")
-            print(f"    Labels     : {', '.join(story['labels']) or 'N/A'}")
-            print(f"    Components : {', '.join(story['components']) or 'N/A'}")
-            print()
-        except RuntimeError as e:
-            print(f"  [ERROR] {key}: {e}\n")
-            sys.exit(1)
+        data = fetch_story(base_url, auth, key)
+        story = parse_story(data, base_url)
+        stories.append(story)
+        print(f"  [{story['key']}] {story['summary']}")
+        print(f"    Link       : {story['link']}")
+        print(f"    Status     : {story['status']}")
+        print(f"    Team       : {', '.join(story['team']) or 'N/A'}")
+        print(f"    Labels     : {', '.join(story['labels']) or 'N/A'}")
+        print(f"    Components : {', '.join(story['components']) or 'N/A'}")
+        print()
 
     confirm_or_cancel("Stories look correct? Press Enter to continue with planning or Esc to cancel")
 
@@ -352,12 +368,9 @@ def main():
             if task["summary"] in existing_titles:
                 print(f"    Skipped (already exists): {task['summary']}")
                 continue
-            try:
-                key, link = create_sub_task(base_url, auth, project_key, story["key"], task)
-                print(f"    Created [{key}] {task['summary']}")
-                print(f"            {link}")
-            except RuntimeError as e:
-                print(f"    ERROR creating '{task['summary']}': {e}")
+            key, link = create_sub_task(base_url, auth, project_key, story["key"], task)
+            print(f"    Created [{key}] {task['summary']}")
+            print(f"            {link}")
         print()
 
     print("Done.")
