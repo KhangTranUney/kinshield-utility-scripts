@@ -9,7 +9,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
 SCRIPTS_DIR = Path(__file__).parent
-STORIES_FILE = SCRIPTS_DIR / "stories.md"
+STORIES_FILE = SCRIPTS_DIR / "create_jira_sub_tasks_stories.md"
 
 TEAM_FIELD = "customfield_10361"
 DEV_COMPONENTS = {"Android", "iOS"}
@@ -241,12 +241,12 @@ def read_story_keys():
         if line and not line.startswith("#"):
             keys.append(parse_key(line))
     if not keys:
-        print("[ERROR] No story keys found in stories.md")
+        print(f"[ERROR] No story keys found in {STORIES_FILE.name}")
         sys.exit(1)
     return keys
 
 
-def write_stories_md(keys):
+def write_stories_file(keys):
     lines = [
         "# Stories",
         "# One entry per line. Lines starting with # are ignored.",
@@ -285,7 +285,11 @@ def main():
         for s in active_future:
             groups.append({"label": f"{s['name']} ({s['state']})", "type": "sprint", "id": s["id"]})
         groups.append({"label": "Backlog (no sprint)", "type": "backlog", "id": board_id})
-        groups.append({"label": "Use stories.md directly", "type": "stories_md", "id": None})
+        groups.append({
+            "label": f"Use {STORIES_FILE.name} directly",
+            "type": "stories_file",
+            "id": None,
+        })
 
         for i, g in enumerate(groups, 1):
             print(f"  {i}. {g['label']}")
@@ -298,8 +302,8 @@ def main():
                 break
             print(f"  Please enter a number between 1 and {len(groups)}.")
 
-        if selected["type"] == "stories_md":
-            print(f"\nUsing existing stories.md...")
+        if selected["type"] == "stories_file":
+            print(f"\nUsing existing {STORIES_FILE.name}...")
         else:
             print(f"\nFetching '{selected['label']}'...")
             if selected["type"] == "sprint":
@@ -312,11 +316,14 @@ def main():
             for issue in tasks:
                 print(f"  [{issue['key']}] [{issue['fields']['issuetype']['name']}] {issue['fields']['summary']}")
 
-            confirm_or_cancel(f"Update stories.md with these {len(tasks)} tasks? Press Enter to continue or Esc to cancel")
+            confirm_or_cancel(
+                f"Update {STORIES_FILE.name} with these {len(tasks)} tasks? "
+                "Press Enter to continue or Esc to cancel"
+            )
 
             keys = [i["key"] for i in tasks]
-            write_stories_md(keys)
-            print(f"stories.md updated with {len(keys)} keys.\n")
+            write_stories_file(keys)
+            print(f"{STORIES_FILE.name} updated with {len(keys)} keys.\n")
 
     # ── Step 1: Fetch and display all stories ─────────────────────────────────
     story_keys = read_story_keys()
