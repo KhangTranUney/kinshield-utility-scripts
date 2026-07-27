@@ -1,0 +1,165 @@
+family 1:
+    care:
+        subscription id: com.kinsense.family.care.1 # android only
+        subscription name: Care Plan 1 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.care.monthly.1
+                name: Care Monthly 1
+                price: 5.99
+                android id: com-kinsense-family-care-monthly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.care.annual.1
+                name: Care Annual 1
+                price: 59.99
+                android id: com-kinsense-family-care-annual-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    protect:
+        subscription id: com.kinsense.family.protect.1 # android only
+        subscription name: Protect Plan 1 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.protect.monthly.1
+                name: Protect Monthly 1
+                price: 9.99
+                android id: com-kinsense-family-protect-monthly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.protect.annual.1
+                name: Protect Annual 1
+                price: 99.99
+                android id: com-kinsense-family-protect-annual-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+family 2:
+    care:
+        subscription id: com.kinsense.family.care.2 # android only
+        subscription name: Care Plan 2 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.care.monthly.2
+                name: Care Monthly 2
+                price: 5.99
+                android id: com-kinsense-family-care-monthly-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.care.annual.2
+                name: Care Annual 2
+                price: 59.99
+                android id: com-kinsense-family-care-annual-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    protect:
+        subscription id: com.kinsense.family.protect.2 # android only
+        subscription name: Protect Plan 2 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.protect.monthly.2
+                name: Protect Monthly 2
+                price: 9.99
+                android id: com-kinsense-family-protect-monthly-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.protect.annual.2
+                name: Protect Annual 2
+                price: 99.99
+                android id: com-kinsense-family-protect-annual-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+family 3:
+    care:
+        subscription id: com.kinsense.family.care.3 # android only
+        subscription name: Care Plan 3 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.care.monthly.3
+                name: Care Monthly 3
+                price: 5.99
+                android id: com-kinsense-family-care-monthly-3 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.care.annual.3
+                name: Care Annual 3
+                price: 59.99
+                android id: com-kinsense-family-care-annual-3 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    protect:
+        subscription id: com.kinsense.family.protect.3 # android only
+        subscription name: Protect Plan 3 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.protect.monthly.3
+                name: Protect Monthly 3
+                price: 9.99
+                android id: com-kinsense-family-protect-monthly-3 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.protect.annual.3
+                name: Protect Annual 3
+                price: 99.99
+                android id: com-kinsense-family-protect-annual-3 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+family 4:
+    care:
+        subscription id: com.kinsense.family.care.4 # android only
+        subscription name: Care Plan 4 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.care.monthly.4
+                name: Care Monthly 4
+                price: 5.99
+                android id: com-kinsense-family-care-monthly-4 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.care.annual.4
+                name: Care Annual 4
+                price: 59.99
+                android id: com-kinsense-family-care-annual-4 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    protect:
+        subscription id: com.kinsense.family.protect.4 # android only
+        subscription name: Protect Plan 4 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.protect.monthly.4
+                name: Protect Monthly 4
+                price: 9.99
+                android id: com-kinsense-family-protect-monthly-4 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.protect.annual.4
+                name: Protect Annual 4
+                price: 99.99
+                android id: com-kinsense-family-protect-annual-4 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+family 5:
+    care:
+        subscription id: com.kinsense.family.care.5 # android only
+        subscription name: Care Plan 5 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.care.monthly.5
+                name: Care Monthly 5
+                price: 5.99
+                android id: com-kinsense-family-care-monthly-5 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.care.annual.5.1
+                name: Care Annual 5.1
+                price: 59.99
+                android id: com-kinsense-family-care-annual-5-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    protect:
+        subscription id: com.kinsense.family.protect.5 # android only
+        subscription name: Protect Plan 5 # android only
+        plan:
+            monthly:
+                id: com.kinsense.family.protect.monthly.5
+                name: Protect Monthly 5
+                price: 9.99
+                android id: com-kinsense-family-protect-monthly-5 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: com.kinsense.family.protect.annual.5
+                name: Protect Annual 5
+                price: 99.99
+                android id: com-kinsense-family-protect-annual-5 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
