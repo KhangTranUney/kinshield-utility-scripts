@@ -1,3 +1,4 @@
+package name: com.kinsense
 family 1:
     care:
         subscription id: com.kinsense.family.care.1 # android only

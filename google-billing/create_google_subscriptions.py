@@ -26,7 +26,6 @@ from google.oauth2 import service_account
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-PACKAGE_NAME = "com.kinshield"
 REPORT_DIR = SCRIPT_DIR / "reports"
 BASE_URL = "https://androidpublisher.googleapis.com/androidpublisher/v3"
 SCOPES = ["https://www.googleapis.com/auth/androidpublisher"]
@@ -34,6 +33,7 @@ TIMEOUT_SECONDS = 30
 
 PRODUCT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.]{0,39}$")
 BASE_PLAN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
+PACKAGE_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$")
 PERIODS = {"monthly": "P1M", "yearly": "P1Y", "annual": "P1Y"}
 PRORATION_MODES = {
     "at next billing date": "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE",
@@ -93,7 +93,7 @@ def usd_money(value: Decimal) -> dict[str, Any]:
     return {"currencyCode": "USD", "units": str(units), "nanos": nanos}
 
 
-def load_config(path: Path) -> list[dict[str, Any]]:
+def load_config(path: Path) -> tuple[str, list[dict[str, Any]]]:
     try:
         document = yaml.safe_load(path.read_text())
     except FileNotFoundError as exc:
@@ -103,6 +103,10 @@ def load_config(path: Path) -> list[dict[str, Any]]:
 
     if not isinstance(document, dict) or not document:
         raise ConfigError("The YAML root must be a non-empty mapping of families.")
+
+    package_name = document.pop("package name", None)
+    if not isinstance(package_name, str) or not PACKAGE_NAME_RE.fullmatch(package_name):
+        raise ConfigError(f"package name must be a valid Android package name: {package_name!r}")
 
     subscriptions: list[dict[str, Any]] = []
     product_ids: set[str] = set()
@@ -186,7 +190,7 @@ def load_config(path: Path) -> list[dict[str, Any]]:
                     "plans": normalized_plans,
                 }
             )
-    return subscriptions
+    return package_name, subscriptions
 
 
 def listing_for(subscription: dict[str, Any]) -> dict[str, Any]:
@@ -198,10 +202,10 @@ def listing_for(subscription: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def payload_template(subscription: dict[str, Any]) -> dict[str, Any]:
+def payload_template(package_name: str, subscription: dict[str, Any]) -> dict[str, Any]:
     """Create the payload shape shown in dry run; regional prices are added on apply."""
     return {
-        "packageName": PACKAGE_NAME,
+        "packageName": package_name,
         "productId": subscription["product_id"],
         "listings": [listing_for(subscription)],
         "basePlans": [
@@ -239,8 +243,8 @@ def request_json(
     return response.status_code, body
 
 
-def subscription_exists(product_id: str, headers: dict[str, str]) -> bool:
-    url = f"{BASE_URL}/applications/{PACKAGE_NAME}/subscriptions/{product_id}"
+def subscription_exists(package_name: str, product_id: str, headers: dict[str, str]) -> bool:
+    url = f"{BASE_URL}/applications/{package_name}/subscriptions/{product_id}"
     status, body = request_json("GET", url, headers)
     if status == 200:
         return True
@@ -249,8 +253,10 @@ def subscription_exists(product_id: str, headers: dict[str, str]) -> bool:
     raise RuntimeError(f"Could not check {product_id}: HTTP {status}: {json.dumps(body)}")
 
 
-def converted_pricing(price: Decimal, headers: dict[str, str]) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
-    url = f"{BASE_URL}/applications/{PACKAGE_NAME}/pricing:convertRegionPrices"
+def converted_pricing(
+    package_name: str, price: Decimal, headers: dict[str, str]
+) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
+    url = f"{BASE_URL}/applications/{package_name}/pricing:convertRegionPrices"
     status, body = request_json("POST", url, headers, json={"price": usd_money(price)})
     if status != 200:
         raise RuntimeError(f"Could not convert USD {price} price: HTTP {status}: {json.dumps(body)}")
@@ -270,11 +276,15 @@ def converted_pricing(price: Decimal, headers: dict[str, str]) -> tuple[list[dic
     return regional_configs, {**other_regions, "newSubscriberAvailability": True}, region_version
 
 
-def build_apply_payload(subscription: dict[str, Any], headers: dict[str, str]) -> tuple[dict[str, Any], dict[str, Any]]:
+def build_apply_payload(
+    package_name: str, subscription: dict[str, Any], headers: dict[str, str]
+) -> tuple[dict[str, Any], dict[str, Any]]:
     base_plans = []
     regions_version = None
     for plan in subscription["plans"]:
-        regional_configs, other_regions, current_version = converted_pricing(plan["price"], headers)
+        regional_configs, other_regions, current_version = converted_pricing(
+            package_name, plan["price"], headers
+        )
         if regions_version and current_version != regions_version:
             raise RuntimeError("Google returned different region versions while preparing one subscription.")
         regions_version = current_version
@@ -290,14 +300,21 @@ def build_apply_payload(subscription: dict[str, Any], headers: dict[str, str]) -
             }
         )
     return (
-        {"packageName": PACKAGE_NAME, "productId": subscription["product_id"], "listings": [listing_for(subscription)], "basePlans": base_plans},
+        {
+            "packageName": package_name,
+            "productId": subscription["product_id"],
+            "listings": [listing_for(subscription)],
+            "basePlans": base_plans,
+        },
         regions_version,
     )
 
 
-def create_subscription(subscription: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
-    payload, regions_version = build_apply_payload(subscription, headers)
-    url = f"{BASE_URL}/applications/{PACKAGE_NAME}/subscriptions"
+def create_subscription(
+    package_name: str, subscription: dict[str, Any], headers: dict[str, str]
+) -> dict[str, Any]:
+    payload, regions_version = build_apply_payload(package_name, subscription, headers)
+    url = f"{BASE_URL}/applications/{package_name}/subscriptions"
     status, body = request_json(
         "POST", url, headers, params={"productId": subscription["product_id"], "regionsVersion.version": regions_version["version"]}, json=payload
     )
@@ -314,8 +331,8 @@ def write_report(report: dict[str, Any]) -> Path:
     return path
 
 
-def print_creation_plan(subscriptions: list[dict[str, Any]]) -> None:
-    print(f"\nCreation plan for {PACKAGE_NAME}")
+def print_creation_plan(package_name: str, subscriptions: list[dict[str, Any]]) -> None:
+    print(f"\nCreation plan for {package_name}")
     print("All subscriptions and base plans will be created in DRAFT state.")
     for subscription in subscriptions:
         name = subscription.get("name") or subscription["product_id"]
@@ -363,7 +380,7 @@ def main() -> int:
         service_account_path = requested_file_path(
             args.service_account_file, "service-account JSON"
         )
-        subscriptions = load_config(config_path)
+        package_name, subscriptions = load_config(config_path)
     except ConfigError as exc:
         print(f"Validation failed: {exc}", file=sys.stderr)
         return 2
@@ -371,12 +388,12 @@ def main() -> int:
     report: dict[str, Any] = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "mode": "dry-run" if args.dry_run else "apply",
-        "packageName": PACKAGE_NAME,
+        "packageName": package_name,
         "config": str(config_path),
         "created": [],
         "skippedExisting": [],
         "failures": [],
-        "planned": [payload_template(subscription) for subscription in subscriptions],
+        "planned": [payload_template(package_name, subscription) for subscription in subscriptions],
     }
 
     if args.dry_run:
@@ -386,7 +403,7 @@ def main() -> int:
         print(f"Report: {report_path}")
         return 0
 
-    print_creation_plan(subscriptions)
+    print_creation_plan(package_name, subscriptions)
     try:
         if not confirm_creation():
             report["cancelled"] = True
@@ -406,11 +423,11 @@ def main() -> int:
     for subscription in subscriptions:
         product_id = subscription["product_id"]
         try:
-            if subscription_exists(product_id, headers):
+            if subscription_exists(package_name, product_id, headers):
                 report["skippedExisting"].append(product_id)
                 print(f"SKIP existing: {product_id}")
                 continue
-            create_subscription(subscription, headers)
+            create_subscription(package_name, subscription, headers)
             report["created"].append(product_id)
             print(f"CREATED DRAFT: {product_id}")
         except Exception as exc:
