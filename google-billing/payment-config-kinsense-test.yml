@@ -1,133 +1,199 @@
 package name: com.kinsense
-family 51:
+family 10:
     care:
-        subscription id: test.com.kinsense.family.care.51 # android only
-        subscription name: Test Care Plan 51 # android only
+        subscription id: qa.com.kinsense.family.care.10 # android only
+        subscription name: QA Care 10 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.51
-                name: Test Care Monthly 51
+                id: qa.com.kinsense.family.care.monthly.10
+                name: QA Care Monthly 10
                 price: 5.99
-                android id: test-com-kinsense-family-care-monthly-51 # android only
+                android id: qa-com-kinsense-family-care-monthly-10 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.care.yearly.51
-                name: Test Care Yearly 51
+            annual:
+                id: qa.com.kinsense.family.care.annual.10
+                name: QA Care Annual 10
                 price: 59.99
-                android id: test-com-kinsense-family-care-yearly-51 # android only
+                android id: qa-com-kinsense-family-care-annual-10 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
     protect:
-        subscription id: test.com.kinsense.family.protect.51 # android only
-        subscription name: Test Protect Plan 51 # android only
+        subscription id: qa.com.kinsense.family.protect.10 # android only
+        subscription name: QA Protect 10 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.51
-                name: Test Protect Monthly 51
+                id: qa.com.kinsense.family.protect.monthly.10
+                name: QA Protect Monthly 10
                 price: 9.99
-                android id: test-com-kinsense-family-protect-monthly-51 # android only
+                android id: qa-com-kinsense-family-protect-monthly-10 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.protect.yearly.51
-                name: Test Protect Yearly 51
+            annual:
+                id: qa.com.kinsense.family.protect.annual.10
+                name: QA Protect Annual 10
                 price: 99.99
-                android id: test-com-kinsense-family-protect-yearly-51 # android only
+                android id: qa-com-kinsense-family-protect-annual-10 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-family 52:
+family 11:
     care:
-        subscription id: test.com.kinsense.family.care.52 # android only
-        subscription name: Test Care Plan 52 # android only
+        subscription id: qa.com.kinsense.family.care.11 # android only
+        subscription name: QA Care 11 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.52
-                name: Test Care Monthly 52
+                id: qa.com.kinsense.family.care.monthly.11
+                name: QA Care Monthly 11
                 price: 5.99
-                android id: test-com-kinsense-family-care-monthly-52 # android only
+                android id: qa-com-kinsense-family-care-monthly-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.care.yearly.52
-                name: Test Care Yearly 52
+            annual:
+                id: qa.com.kinsense.family.care.annual.11
+                name: QA Care Annual 11
                 price: 59.99
-                android id: com-kinsense-family-care-yearly-52 # android only
+                android id: qa-com-kinsense-family-care-annual-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
     protect:
-        subscription id: test.com.kinsense.family.protect.52 # android only
-        subscription name: Test Protect Plan 52 # android only
+        subscription id: qa.com.kinsense.family.protect.11 # android only
+        subscription name: QA Protect 11 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.52
-                name: Test Protect Monthly 52
+                id: qa.com.kinsense.family.protect.monthly.11
+                name: QA Protect Monthly 11
                 price: 9.99
-                android id: test-com-kinsense-family-protect-monthly-52 # android only
+                android id: qa-com-kinsense-family-protect-monthly-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.protect.yearly.52
-                name: Test Protect Yearly 52
+            annual:
+                id: qa.com.kinsense.family.protect.annual.11
+                name: QA Protect Annual 11
                 price: 99.99
-                android id: com-kinsense-family-protect-yearly-52 # android only
+                android id: qa-com-kinsense-family-protect-annual-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-family 53:
+family 12:
     care:
-        subscription id: test.com.kinsense.family.care.53 # android only
-        subscription name: Test Care Plan 53 # android only
+        subscription id: qa.com.kinsense.family.care.12 # android only
+        subscription name: QA Care 12 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.53
-                name: Test Care Monthly 53
+                id: qa.com.kinsense.family.care.monthly.12
+                name: QA Care Monthly 12
                 price: 5.99
-                android id: test-com-kinsense-family-care-monthly-53 # android only
+                android id: qa-com-kinsense-family-care-monthly-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.care.yearly.53
-                name: Test Care Yearly 53
+            annual:
+                id: qa.com.kinsense.family.care.annual.12
+                name: QA Care Annual 12
                 price: 59.99
-                android id: test-com-kinsense-family-care-yearly-53 # android only
+                android id: qa-com-kinsense-family-care-annual-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
     protect:
-        subscription id: test.com.kinsense.family.protect.53 # android only
-        subscription name: Test Protect Plan 53 # android only
+        subscription id: qa.com.kinsense.family.protect.12 # android only
+        subscription name: QA Protect 12 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.53
-                name: Test Protect Monthly 53
+                id: qa.com.kinsense.family.protect.monthly.12
+                name: QA Protect Monthly 12
                 price: 9.99
-                android id: test-com-kinsense-family-protect-monthly-53 # android only
+                android id: qa-com-kinsense-family-protect-monthly-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.protect.yearly.53
-                name: Test Protect Yearly 53
+            annual:
+                id: qa.com.kinsense.family.protect.annual.12
+                name: QA Protect Annual 12
                 price: 99.99
-                android id: test-com-kinsense-family-protect-yearly-53 # android only
+                android id: qa-com-kinsense-family-protect-annual-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-family 54:
+family 13:
     care:
-        subscription id: test.com.kinsense.family.care.54 # android only
-        subscription name: Test Care Plan 54 # android only
+        subscription id: qa.com.kinsense.family.care.13 # android only
+        subscription name: QA Care 13 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.54
-                name: Test Care Monthly 54
+                id: qa.com.kinsense.family.care.monthly.13
+                name: QA Care Monthly 13
                 price: 5.99
-                android id: test-com-kinsense-family-care-monthly-54 # android only
+                android id: qa-com-kinsense-family-care-monthly-13 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.care.yearly.54
-                name: Test Care Yearly 54
+            annual:
+                id: qa.com.kinsense.family.care.annual.13
+                name: QA Care Annual 13
                 price: 59.99
-                android id: test-com-kinsense-family-care-yearly-54 # android only
+                android id: qa-com-kinsense-family-care-annual-13 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
     protect:
-        subscription id: test.com.kinsense.family.protect.54 # android only
-        subscription name: Test Protect Plan 54 # android only
+        subscription id: qa.com.kinsense.family.protect.13 # android only
+        subscription name: QA Protect 13 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.54
-                name: Test Protect Monthly 54
+                id: qa.com.kinsense.family.protect.monthly.13
+                name: QA Protect Monthly 13
                 price: 9.99
-                android id: test-com-kinsense-family-protect-monthly-54 # android only
+                android id: qa-com-kinsense-family-protect-monthly-13 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
-            yearly:
-                id: com.kinsense.family.protect.yearly.54
-                name: Test Protect Yearly 54
+            annual:
+                id: qa.com.kinsense.family.protect.annual.13
+                name: QA Protect Annual 13
                 price: 99.99
-                android id: test-com-kinsense-family-protect-yearly-54 # android only
+                android id: qa-com-kinsense-family-protect-annual-13 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+family 14:
+    care:
+        subscription id: qa.com.kinsense.family.care.14 # android only
+        subscription name: QA Care 14 # android only
+        plan:
+            monthly:
+                id: qa.com.kinsense.family.care.monthly.14
+                name: QA Care Monthly 14
+                price: 5.99
+                android id: qa-com-kinsense-family-care-monthly-14 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: qa.com.kinsense.family.care.annual.14
+                name: QA Care Annual 14
+                price: 59.99
+                android id: qa-com-kinsense-family-care-annual-14 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    protect:
+        subscription id: qa.com.kinsense.family.protect.14 # android only
+        subscription name: QA Protect 14 # android only
+        plan:
+            monthly:
+                id: qa.com.kinsense.family.protect.monthly.14
+                name: QA Protect Monthly 14
+                price: 9.99
+                android id: qa-com-kinsense-family-protect-monthly-14 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: qa.com.kinsense.family.protect.annual.14
+                name: QA Protect Annual 14
+                price: 99.99
+                android id: qa-com-kinsense-family-protect-annual-14 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+family 15:
+    care:
+        subscription id: qa.com.kinsense.family.care.15 # android only
+        subscription name: QA Care 15 # android only
+        plan:
+            monthly:
+                id: qa.com.kinsense.family.care.monthly.15
+                name: QA Care Monthly 15
+                price: 5.99
+                android id: qa-com-kinsense-family-care-monthly-15 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: qa.com.kinsense.family.care.annual.15
+                name: QA Care Annual 15
+                price: 59.99
+                android id: qa-com-kinsense-family-care-annual-15 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    protect:
+        subscription id: qa.com.kinsense.family.protect.15 # android only
+        subscription name: QA Protect 15 # android only
+        plan:
+            monthly:
+                id: qa.com.kinsense.family.protect.monthly.15
+                name: QA Protect Monthly 15
+                price: 9.99
+                android id: qa-com-kinsense-family-protect-monthly-15 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            annual:
+                id: qa.com.kinsense.family.protect.annual.15
+                name: QA Protect Annual 15
+                price: 99.99
+                android id: qa-com-kinsense-family-protect-annual-15 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
