@@ -2,99 +2,99 @@ package name: com.kinsense.qa
 family 11:
     care:
         subscription id: com.kinsense.family.care.11 # android only
-        subscription name: KinSense Care 11 # android only
+        subscription name: QA KinSense Care 11 # android only
         plan:
             monthly:
                 id: com.kinsense.family.care.monthly.11
-                name: KinSense Care Monthly 11
+                name: QA KinSense Care Monthly 11
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
             annual:
                 id: com.kinsense.family.care.annual.11
-                name: KinSense Care Annual 11
+                name: QA KinSense Care Annual 11
                 price: 59.99
                 android id: com-kinsense-family-care-annual-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
     protect:
         subscription id: com.kinsense.family.protect.11 # android only
-        subscription name: KinSense Protect 11 # android only
+        subscription name: QA KinSense Protect 11 # android only
         plan:
             monthly:
                 id: com.kinsense.family.protect.monthly.11
-                name: KinSense Protect Monthly 11
+                name: QA KinSense Protect Monthly 11
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
             annual:
                 id: com.kinsense.family.protect.annual.11
-                name: KinSense Protect Annual 11
+                name: QA KinSense Protect Annual 11
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-11 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
 family 12:
     care:
         subscription id: com.kinsense.family.care.12 # android only
-        subscription name: KinSense Care 12 # android only
+        subscription name: QA KinSense Care 12 # android only
         plan:
             monthly:
                 id: com.kinsense.family.care.monthly.12
-                name: KinSense Care Monthly 12
+                name: QA KinSense Care Monthly 12
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
             annual:
                 id: com.kinsense.family.care.annual.12
-                name: KinSense Care Annual 12
+                name: QA KinSense Care Annual 12
                 price: 59.99
                 android id: com-kinsense-family-care-annual-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
     protect:
         subscription id: com.kinsense.family.protect.12 # android only
-        subscription name: KinSense Protect 12 # android only
+        subscription name: QA KinSense Protect 12 # android only
         plan:
             monthly:
                 id: com.kinsense.family.protect.monthly.12
-                name: KinSense Protect Monthly 12
+                name: QA KinSense Protect Monthly 12
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
             annual:
                 id: com.kinsense.family.protect.annual.12
-                name: KinSense Protect Annual 12
+                name: QA KinSense Protect Annual 12
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-12 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
 family 13:
     care:
         subscription id: com.kinsense.family.care.13 # android only
-        subscription name: KinSense Care 13 # android only
+        subscription name: QA KinSense Care 13 # android only
         plan:
             monthly:
                 id: com.kinsense.family.care.monthly.13
-                name: KinSense Care Monthly 13
+                name: QA KinSense Care Monthly 13
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-13 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
             annual:
                 id: com.kinsense.family.care.annual.13
-                name: KinSense Care Annual 13
+                name: QA KinSense Care Annual 13
                 price: 59.99
                 android id: com-kinsense-family-care-annual-13 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
     protect:
         subscription id: com.kinsense.family.protect.13 # android only
-        subscription name: KinSense Protect 13 # android only
+        subscription name: QA KinSense Protect 13 # android only
         plan:
             monthly:
                 id: com.kinsense.family.protect.monthly.13
-                name: KinSense Protect Monthly 13
+                name: QA KinSense Protect Monthly 13
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-13 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
             annual:
                 id: com.kinsense.family.protect.annual.13
-                name: KinSense Protect Annual 13
+                name: QA KinSense Protect Annual 13
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-13 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
