@@ -359,18 +359,24 @@ def confirm_creation() -> bool:
     print("\nPress Enter to create these DRAFT subscriptions, or Esc to cancel: ", end="", flush=True)
     file_descriptor = sys.stdin.fileno()
     previous_settings = termios.tcgetattr(file_descriptor)
+    confirmed = False
     try:
         tty.setraw(file_descriptor)
         while True:
             key = sys.stdin.read(1)
             if key in ("\r", "\n"):
-                print("\nConfirmed.")
-                return True
+                confirmed = True
+                break
             if key == "\x1b":
-                print("\nCancelled. No Google Play changes were made.")
-                return False
+                break
     finally:
         termios.tcsetattr(file_descriptor, termios.TCSADRAIN, previous_settings)
+
+    if confirmed:
+        print("\nConfirmed.")
+        return True
+    print("\nCancelled. No Google Play changes were made.")
+    return False
 
 
 def main() -> int:
