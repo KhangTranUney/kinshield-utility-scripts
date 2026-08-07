@@ -1,0 +1,86 @@
+package name: com.kinsense
+group 1:
+    level 1:
+        id: com.kinsense.family.protect.annual.1
+        name: KinSense Protect Yearly
+        price: 99.99
+    level 2:
+        id: com.kinsense.family.protect.monthly.1
+        name: KinSense Protect Monthly
+        price: 9.99
+    level 3:
+        id: com.kinsense.family.care.annual.1
+        name: KinSense Care Yearly
+        price: 59.99
+    level 4:
+        id: com.kinsense.family.care.monthly.1
+        name: KinSense Care Monthly
+        price: 5.99
+group 2:
+    level 1:
+        id: com.kinsense.family.protect.annual.2
+        name: KinSense Protect Yearly 2
+        price: 99.99
+    level 2:
+        id: com.kinsense.family.protect.monthly.2
+        name: KinSense Protect Monthly 2
+        price: 9.99
+    level 3:
+        id: com.kinsense.family.care.annual.2
+        name: KinSense Care Yearly 2
+        price: 59.99
+    level 4:
+        id: com.kinsense.family.care.monthly.2
+        name: KinSense Care Monthly 2
+        price: 5.99
+group 3:
+    level 1:
+        id: com.kinsense.family.protect.annual.3
+        name: KinSense Protect Yearly 3
+        price: 99.99
+    level 2:
+        id: com.kinsense.family.protect.monthly.3
+        name: KinSense Protect Monthly 3
+        price: 9.99
+    level 3:
+        id: com.kinsense.family.care.annual.3
+        name: KinSense Care Yearly 3
+        price: 59.99
+    level 4:
+        id: com.kinsense.family.care.monthly.3
+        name: KinSense Care Monthly 3
+        price: 5.99
+group 4:
+    level 1:
+        id: com.kinsense.family.protect.annual.4
+        name: KinSense Protect Yearly 4
+        price: 99.99
+    level 2:
+        id: com.kinsense.family.protect.monthly.4
+        name: KinSense Protect Monthly 4
+        price: 9.99
+    level 3:
+        id: com.kinsense.family.care.annual.4
+        name: KinSense Care Yearly 4
+        price: 59.99
+    level 4:
+        id: com.kinsense.family.care.monthly.4
+        name: KinSense Care Monthly 4
+        price: 5.99
+group 6:
+    level 1:
+        id: com.kinsense.family.protect.annual.6
+        name: KinSense Protect Yearly 6
+        price: 99.99
+    level 2:
+        id: com.kinsense.family.protect.monthly.6
+        name: KinSense Protect Monthly 6
+        price: 9.99
+    level 3:
+        id: com.kinsense.family.care.annual.6
+        name: KinSense Care Yearly 6
+        price: 59.99
+    level 4:
+        id: com.kinsense.family.care.monthly.6
+        name: KinSense Care Monthly 6
+        price: 5.99

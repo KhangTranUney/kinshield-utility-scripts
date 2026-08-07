@@ -1,0 +1,67 @@
+package name: com.kinshield.qa
+family 1:
+    basic:
+        subscription id: test.basic.1 # android only
+        subscription name: QA Basic Plan 1 # android only
+        plan:
+            monthly:
+                id: test.basic.monthly.1
+                name: QA Basic Monthly 1
+                price: 5.99
+                android id: test-basic-monthly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            yearly:
+                id: test.basic.yearly.1
+                name: QA Basic Yearly 1
+                price: 59.99
+                android id: test-basic-yearly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    premium:
+        subscription id: test.premium.1 # android only
+        subscription name: QA Premium Plan 1 # android only
+        plan:
+            monthly:
+                id: test.premium.monthly.1
+                name: QA Premium Monthly 1
+                price: 9.99
+                android id: test-premium-monthly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            yearly:
+                id: test.premium.yearly.1
+                name: QA Premium Yearly 1
+                price: 99.99
+                android id: test-premium-yearly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+family 2:
+    basic:
+        subscription id: test.basic.2 # android only
+        subscription name: QA Basic Plan 2 # android only
+        plan:
+            monthly:
+                id: test.basic.monthly.2
+                name: QA Basic Monthly 2
+                price: 5.99
+                android id: test-basic-monthly-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            yearly:
+                id: test.basic.yearly.2
+                name: QA Basic Yearly 2
+                price: 59.99
+                android id: test-basic-yearly-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+    premium:
+        subscription id: test.premium.2 # android only
+        subscription name: QA Premium Plan 2 # android only
+        plan:
+            monthly:
+                id: test.premium.monthly.2
+                name: QA Premium Monthly 2
+                price: 9.99
+                android id: test-premium-monthly-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+            yearly:
+                id: test.premium.yearly.2
+                name: QA Premium Yearly 2
+                price: 99.99
+                android id: test-premium-yearly-2 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date

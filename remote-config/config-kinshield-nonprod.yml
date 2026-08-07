@@ -1,0 +1,16 @@
+app_share_url:
+    deleted: false
+    data_type: string
+    value: "https://app.getkinshield.com/"
+floating_button_hide_duration:
+    deleted: false
+    data_type: number
+    value: 3600
+todo_priority:
+    deleted: false
+    data_type: json
+    value: "{\"todo_enable_floating\":5}"
+test_mode:
+    deleted: true
+    data_type: boolean
+    value: true
