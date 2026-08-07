@@ -18,9 +18,6 @@ import yaml
 from google.oauth2 import service_account
 
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-CREDENTIALS_DIR = SCRIPT_DIR / "credentials"
-DEFAULT_CONFIG = SCRIPT_DIR / "config-kinshield-nonprod.yml"
 API_URL = "https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/remoteConfig"
 SCOPES = ["https://www.googleapis.com/auth/firebase.remoteconfig"]
 TIMEOUT_SECONDS = 30
@@ -35,15 +32,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-id", required=True, help="Firebase project ID or project number.")
     parser.add_argument(
-        "--config",
+        "config",
+        nargs="?",
         type=Path,
-        default=DEFAULT_CONFIG,
-        help=f"YAML manifest to publish (default: {DEFAULT_CONFIG.name}).",
+        help="Absolute path to the Remote Config YAML. Prompts when omitted.",
     )
     parser.add_argument(
-        "--credentials",
+        "--service-account-file",
         type=Path,
-        help="Service-account JSON. Defaults to the only *.json file in credentials/.",
+        help="Absolute path to the service-account JSON. Prompts when omitted.",
     )
     parser.add_argument(
         "--apply",
@@ -53,25 +50,23 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def credential_path(requested: Path | None) -> Path:
-    if requested is not None:
-        path = requested.expanduser().resolve()
-        if not path.is_file():
-            raise ConfigError(f"Credentials file does not exist: {path}")
-        return path
+def absolute_file_path(value: Path, label: str) -> Path:
+    """Validate a user-supplied absolute path to a regular file."""
+    if not value.is_absolute():
+        raise ConfigError(f"{label} must be an absolute path: {value}")
+    if not value.is_file():
+        raise ConfigError(f"{label} does not exist or is not a file: {value}")
+    return value
 
-    candidates = sorted(CREDENTIALS_DIR.glob("*.json"))
-    if len(candidates) == 1:
-        return candidates[0]
-    if not candidates:
-        raise ConfigError(
-            "No credentials found. Save a Firebase service-account JSON key in "
-            f"{CREDENTIALS_DIR}/, or pass --credentials /absolute/path/key.json."
-        )
-    raise ConfigError(
-        "More than one credentials JSON file exists. Pass --credentials explicitly: "
-        + ", ".join(str(path) for path in candidates)
-    )
+
+def requested_file_path(value: Path | None, label: str) -> Path:
+    if value is None:
+        try:
+            raw_value = input(f"Enter the absolute path to the {label}: ").strip()
+        except EOFError as exc:
+            raise ConfigError(f"No {label} path was provided.") from exc
+        value = Path(raw_value)
+    return absolute_file_path(value, label)
 
 
 def load_manifest(path: Path) -> dict[str, dict[str, Any]]:
@@ -195,9 +190,11 @@ def put_template(
 def main() -> int:
     args = parse_args()
     try:
-        manifest = load_manifest(args.config.resolve())
+        config_path = requested_file_path(args.config, "Remote Config YAML")
+        service_account_path = requested_file_path(args.service_account_file, "service-account JSON")
+        manifest = load_manifest(config_path)
         credentials = service_account.Credentials.from_service_account_file(
-            credential_path(args.credentials), scopes=SCOPES
+            service_account_path, scopes=SCOPES
         )
         session = google.auth.transport.requests.AuthorizedSession(credentials)
         template, etag = get_template(session, args.project_id)
@@ -206,7 +203,7 @@ def main() -> int:
         validation = put_template(session, args.project_id, merged_template, etag, validate_only=True)
         if not validation.ok:
             raise ConfigError(f"Validation failed ({validation.status_code}):\n{response_error(validation)}")
-        print(f"Validated {args.config}: {len(updated)} update(s), {len(deleted)} deletion(s).")
+        print(f"Validated {config_path}: {len(updated)} update(s), {len(deleted)} deletion(s).")
         if not args.apply:
             print("No changes published. Re-run with --apply to publish this validated merge.")
             return 0
