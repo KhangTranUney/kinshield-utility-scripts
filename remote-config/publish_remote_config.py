@@ -6,7 +6,6 @@ The script previews and validates the merged template, then asks before publishi
 
 from __future__ import annotations
 
-import argparse
 import json
 import sys
 import termios
@@ -20,49 +19,46 @@ import yaml
 from google.oauth2 import service_account
 
 
+SCRIPT_DIR = Path(__file__).resolve().parent
 API_URL = "https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/remoteConfig"
 SCOPES = ["https://www.googleapis.com/auth/firebase.remoteconfig"]
 TIMEOUT_SECONDS = 30
 DATA_TYPES = {"string": "STRING", "number": "NUMBER", "boolean": "BOOLEAN", "json": "JSON"}
+ENVIRONMENTS = {
+    "1": (
+        "prod",
+        SCRIPT_DIR / "config-kinshield-prod.yml",
+        SCRIPT_DIR / "credentials" / "kinshield-prod-firebase-adminsdk.json",
+    ),
+    "2": (
+        "non-prod",
+        SCRIPT_DIR / "config-kinshield-nonprod.yml",
+        SCRIPT_DIR / "credentials" / "kinshield-non-prod-firebase-adminsdk.json",
+    ),
+}
 
 
 class ConfigError(ValueError):
     """Raised when a manifest cannot be converted into a safe API request."""
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "config",
-        nargs="?",
-        type=Path,
-        help="Absolute path to the Remote Config YAML. Prompts when omitted.",
-    )
-    parser.add_argument(
-        "--service-account-file",
-        type=Path,
-        help="Absolute path to the service-account JSON. Prompts when omitted.",
-    )
-    return parser.parse_args()
-
-
-def absolute_file_path(value: Path, label: str) -> Path:
-    """Validate a user-supplied absolute path to a regular file."""
-    if not value.is_absolute():
-        raise ConfigError(f"{label} must be an absolute path: {value}")
-    if not value.is_file():
-        raise ConfigError(f"{label} does not exist or is not a file: {value}")
-    return value
-
-
-def requested_file_path(value: Path | None, label: str) -> Path:
-    if value is None:
-        try:
-            raw_value = input(f"Enter the absolute path to the {label}: ").strip()
-        except EOFError as exc:
-            raise ConfigError(f"No {label} path was provided.") from exc
-        value = Path(raw_value)
-    return absolute_file_path(value, label)
+def choose_environment() -> tuple[str, Path, Path]:
+    print("Choose the Firebase environment:")
+    print("  1. prod")
+    print("  2. non-prod")
+    try:
+        choice = input("Enter 1 or 2: ").strip()
+    except EOFError as exc:
+        raise ConfigError("No environment was selected.") from exc
+    environment = ENVIRONMENTS.get(choice)
+    if environment is None:
+        raise ConfigError("Invalid environment. Choose 1 for prod or 2 for non-prod.")
+    name, config_path, service_account_path = environment
+    if not config_path.is_file():
+        raise ConfigError(f"{name} config file does not exist: {config_path}")
+    if not service_account_path.is_file():
+        raise ConfigError(f"{name} service-account JSON does not exist: {service_account_path}")
+    return environment
 
 
 def load_manifest(path: Path) -> tuple[str, dict[str, dict[str, Any]]]:
@@ -246,11 +242,10 @@ def put_template(
 
 
 def main() -> int:
-    args = parse_args()
     try:
-        config_path = requested_file_path(args.config, "Remote Config YAML")
+        environment, config_path, service_account_path = choose_environment()
+        print(f"Selected {environment}.")
         project_id, manifest = load_manifest(config_path)
-        service_account_path = requested_file_path(args.service_account_file, "service-account JSON")
         credentials = service_account.Credentials.from_service_account_file(
             service_account_path, scopes=SCOPES
         )
