@@ -331,4 +331,3 @@ API permissions:
 - Google Play has Pub/Sub Publisher access to the RTDN topic.
 - Test users have joined the testing track.
 - Test purchases complete successfully.
-

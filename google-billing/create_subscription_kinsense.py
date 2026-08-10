@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Create KinSense Google Play subscriptions from a KinSense YAML file."""
+"""Create KinSense Google Play subscriptions from the fixed KinSense YAML files.
+
+This is the KinSense-specific parsing layer. It converts the KinSense Android
+YAML schema into the normalized subscription dictionaries consumed by
+``post_subscriptions.py``. Keep Google Play HTTP logic out of this file.
+"""
 
 from __future__ import annotations
 
@@ -15,9 +20,12 @@ import yaml
 from post_subscriptions import InputError, absolute_file_path, post_subscriptions, usd_money
 
 
+# Google Play's identifier rules. Validate them before an API request so YAML
+# mistakes produce a precise local error.
 PRODUCT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.]{0,39}$")
 BASE_PLAN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 PACKAGE_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$")
+# KinSense YAML plan names mapped to the ISO 8601 periods Google Play expects.
 PERIODS = {"monthly": "P1M", "yearly": "P1Y", "annual": "P1Y"}
 PRORATION_MODES = {
     "at next billing date": "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE",
@@ -27,11 +35,14 @@ RESUBSCRIBE_STATES = {
     True: "RESUBSCRIBE_STATE_ACTIVE",
     False: "RESUBSCRIBE_STATE_INACTIVE",
 }
+# These are the only selectable configurations. Add another environment here
+# when its Android YAML is ready; callers never enter arbitrary YAML paths.
 SCRIPT_DIR = Path(__file__).resolve().parent
 CONFIG_PATHS = {
     "QA": SCRIPT_DIR / "configs" / "payment-config-kinsense-qa-android.yml",
     "PROD": SCRIPT_DIR / "configs" / "payment-config-kinsense-prod-android.yml",
 }
+# Credential location is intentionally fixed for the KinSense workflow.
 SERVICE_ACCOUNT_PATH = SCRIPT_DIR / "credentials" / "service-account-kinsense.json"
 
 
@@ -40,13 +51,14 @@ class ConfigError(ValueError):
 
 
 def parse_args() -> argparse.Namespace:
+    """Accept only runtime behavior flags; config and credentials are fixed."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="Preview without Google Play requests.")
     return parser.parse_args()
 
 
 def parse_kinsense_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
-    """Parse the KinSense Android payment-config YAML layout."""
+    """Parse KinSense Android YAML into the normalized posting-module format."""
     try:
         document = yaml.safe_load(path.read_text())
     except FileNotFoundError as exc:
@@ -57,11 +69,14 @@ def parse_kinsense_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
     if not isinstance(document, dict) or not document:
         raise ConfigError("The YAML root must be a non-empty mapping of families.")
 
+    # Remove the metadata key before treating the remaining keys as families.
     package_name = document.pop("package name", None)
     if not isinstance(package_name, str) or not PACKAGE_NAME_RE.fullmatch(package_name):
         raise ConfigError(f"package name must be a valid Android package name: {package_name!r}")
 
     subscriptions: list[dict[str, Any]] = []
+    # IDs must be globally unique within this input batch. Detecting duplicates
+    # here prevents a partially-created set of subscriptions in Google Play.
     product_ids: set[str] = set()
     base_plan_ids: set[str] = set()
     for family, tiers in document.items():
@@ -104,6 +119,7 @@ def parse_kinsense_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
                     raise ConfigError(f"{plan_context}: price must be a positive USD amount.") from exc
                 if not price.is_finite() or price <= 0 or price.as_tuple().exponent < -9:
                     raise ConfigError(f"{plan_context}: invalid USD price: {price}")
+                # Translate friendly YAML values to the exact Google API enums.
                 charge_timing = plan.get("android charge")
                 if charge_timing not in PRORATION_MODES:
                     valid_values = ", ".join(repr(value) for value in PRORATION_MODES)
@@ -111,6 +127,9 @@ def parse_kinsense_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
                 resubscribe = plan.get("android resubscribe")
                 if not isinstance(resubscribe, bool):
                     raise ConfigError(f"{plan_context}: android resubscribe must be true or false.")
+                # This normalized dictionary is the contract with
+                # post_subscriptions.py. Future app-specific parsers should
+                # create the same shape, even if their YAML looks different.
                 base_plans.append(
                     {
                         "basePlanId": base_plan_id,
@@ -144,6 +163,7 @@ def selected_config_path() -> Path:
         selection = input("Enter 1 or 2: ").strip()
     except EOFError as exc:
         raise ConfigError("No environment was selected.") from exc
+    # Accept either the displayed number or the environment name.
     environments = {"1": "QA", "2": "PROD", "qa": "QA", "prod": "PROD"}
     environment = environments.get(selection.lower())
     if environment is None:
@@ -154,6 +174,8 @@ def selected_config_path() -> Path:
 def main() -> int:
     args = parse_args()
     try:
+        # Select and parse the app-specific input, then hand only normalized
+        # data to the shared Google Play posting module.
         config_path = selected_config_path()
         package_name, subscriptions = parse_kinsense_yaml(config_path)
         service_account_path = absolute_file_path(
