@@ -1,5 +1,6 @@
 import sys
 import json
+from pathlib import Path
 import requests
 from google.oauth2 import service_account
 import google.auth.transport.requests
@@ -15,7 +16,7 @@ SERVICE_ACCOUNT_FILE = "/Users/khangtran/Desktop/kinshield/kinshield-prod-3553bd
 SCOPES = ["https://www.googleapis.com/auth/androidpublisher"]
 BASE_URL = "https://androidpublisher.googleapis.com/androidpublisher/v3"
 PAGE_SIZE = 1000
-OUTPUT_FILE = "google_product_catalog.json"
+OUTPUT_FILE = Path(__file__).resolve().parent / "reports" / "google_product_catalog.json"
 # Set to [] to print every region returned by Google Play.
 PRICE_REGIONS = ["VN", "US"]
 
