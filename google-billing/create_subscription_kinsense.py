@@ -12,7 +12,7 @@ from typing import Any
 
 import yaml
 
-from post_subscriptions import InputError, absolute_file_path, post_subscriptions
+from post_subscriptions import InputError, absolute_file_path, post_subscriptions, usd_money
 
 
 PRODUCT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.]{0,39}$")
@@ -39,13 +39,6 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true", help="Preview without Google Play requests.")
     return parser.parse_args()
-
-
-def usd_money(value: Decimal) -> dict[str, Any]:
-    nanos_per_unit = Decimal("1000000000")
-    units = int(value // 1)
-    nanos = int((value - Decimal(units)) * nanos_per_unit)
-    return {"currencyCode": "USD", "units": str(units), "nanos": nanos}
 
 
 def parse_kinsense_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:

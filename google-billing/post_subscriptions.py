@@ -32,6 +32,14 @@ class InputError(ValueError):
     """Raised when normalized creator input is invalid."""
 
 
+def usd_money(value: Decimal) -> dict[str, Any]:
+    """Format a non-negative Decimal as the Google Play API Money representation."""
+    nanos_per_unit = Decimal("1000000000")
+    units = int(value // 1)
+    nanos = int((value - Decimal(units)) * nanos_per_unit)
+    return {"currencyCode": "USD", "units": str(units), "nanos": nanos}
+
+
 def absolute_file_path(value: Path, label: str) -> Path:
     if not value.is_absolute():
         raise InputError(f"{label} must be an absolute path: {value}")
@@ -89,16 +97,11 @@ def subscription_exists(package_name: str, product_id: str, headers: dict[str, s
 def converted_pricing(
     package_name: str, price: Decimal, headers: dict[str, str]
 ) -> tuple[list[dict[str, Any]], dict[str, Any], dict[str, Any]]:
-    money = {
-        "currencyCode": "USD",
-        "units": str(int(price)),
-        "nanos": int((price % 1) * Decimal("1000000000")),
-    }
     status, body = request_json(
         "POST",
         f"{BASE_URL}/applications/{package_name}/pricing:convertRegionPrices",
         headers,
-        json={"price": money},
+        json={"price": usd_money(price)},
     )
     if status != 200:
         raise RuntimeError(f"Could not convert USD {price} price: HTTP {status}: {json.dumps(body)}")
@@ -267,4 +270,3 @@ def post_subscriptions(
     print(f"Summary: created={len(report['created'])}, skipped={len(report['skippedExisting'])}, failed={len(report['failures'])}")
     print(f"Report: {write_report(report)}")
     return 1 if report["failures"] else 0
-
