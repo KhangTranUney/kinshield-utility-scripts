@@ -23,6 +23,10 @@ PRORATION_MODES = {
     "at next billing date": "SUBSCRIPTION_PRORATION_MODE_CHARGE_ON_NEXT_BILLING_DATE",
     "immediately": "SUBSCRIPTION_PRORATION_MODE_CHARGE_FULL_PRICE_IMMEDIATELY",
 }
+RESUBSCRIBE_STATES = {
+    True: "RESUBSCRIBE_STATE_ACTIVE",
+    False: "RESUBSCRIBE_STATE_INACTIVE",
+}
 SCRIPT_DIR = Path(__file__).resolve().parent
 CONFIG_PATHS = {
     "QA": SCRIPT_DIR / "configs" / "payment-config-kinsense-qa-android.yml",
@@ -104,11 +108,15 @@ def parse_kinsense_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
                 if charge_timing not in PRORATION_MODES:
                     valid_values = ", ".join(repr(value) for value in PRORATION_MODES)
                     raise ConfigError(f"{plan_context}: android charge must be one of: {valid_values}.")
+                resubscribe = plan.get("android resubscribe")
+                if not isinstance(resubscribe, bool):
+                    raise ConfigError(f"{plan_context}: android resubscribe must be true or false.")
                 base_plans.append(
                     {
                         "basePlanId": base_plan_id,
                         "billingPeriodDuration": PERIODS[plan_name],
                         "prorationMode": PRORATION_MODES[charge_timing],
+                        "resubscribeState": RESUBSCRIBE_STATES[resubscribe],
                         "sourceUsdPrice": usd_money(price),
                         "name": plan.get("name") or base_plan_id,
                     }
