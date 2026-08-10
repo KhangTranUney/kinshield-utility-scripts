@@ -1,5 +1,5 @@
 .env
 __pycache__/
-google-billing/credentials/*.json
+google-billing/credentials/
 google-billing/reports/
 remote-config/credentials/
