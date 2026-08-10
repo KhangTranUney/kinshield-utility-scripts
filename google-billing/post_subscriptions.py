@@ -191,7 +191,11 @@ def print_creation_plan(package_name: str, subscriptions: list[dict[str, Any]]) 
         print(f"\n- Subscription: {subscription['listing']['title']} ({subscription['productId']})")
         for plan in subscription["basePlans"]:
             price = money_to_decimal(plan["sourceUsdPrice"], plan["basePlanId"])
-            resubscribe = "resubscribe enabled" if plan["resubscribeState"].endswith("ACTIVE") else "resubscribe disabled"
+            resubscribe = (
+                "resubscribe enabled"
+                if plan["resubscribeState"] == "RESUBSCRIBE_STATE_ACTIVE"
+                else "resubscribe disabled"
+            )
             print(
                 f"  - {plan.get('name', plan['basePlanId'])}: {plan['basePlanId']} | "
                 f"{plan['billingPeriodDuration']} | USD {price:.2f} | {resubscribe}"
