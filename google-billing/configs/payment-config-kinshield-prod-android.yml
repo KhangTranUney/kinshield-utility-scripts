@@ -10,12 +10,14 @@ family 1:
                 price: 5.99
                 android id: test-basic-monthly-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
             yearly:
                 id: test.basic.yearly.1
                 name: Basic Yearly 1
                 price: 59.99
                 android id: test-basic-yearly-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
     premium:
         subscription id: test.premium.1 # android only
         subscription name: Premium Plan 1 # android only
@@ -26,12 +28,14 @@ family 1:
                 price: 9.99
                 android id: test-premium-monthly-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
             yearly:
                 id: test.premium.yearly.1
                 name: Premium Yearly 1
                 price: 99.99
                 android id: test-premium-yearly-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
 family 2:
     basic:
         subscription id: test.basic.2 # android only
@@ -43,12 +47,14 @@ family 2:
                 price: 5.99
                 android id: test-basic-monthly-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
             yearly:
                 id: test.basic.yearly.2
                 name: Basic Yearly 2
                 price: 59.99
                 android id: test-basic-yearly-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
     premium:
         subscription id: test.premium.2 # android only
         subscription name: Premium Plan 2 # android only
@@ -59,9 +65,11 @@ family 2:
                 price: 9.99
                 android id: test-premium-monthly-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
             yearly:
                 id: test.premium.yearly.2
                 name: Premium Yearly 2
                 price: 99.99
                 android id: test-premium-yearly-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
