@@ -53,7 +53,7 @@ params:
         data_type: string
         value: "https://getkinshield.com/tos?utm_source=inapp"
     settings_legal_info:
-        deleted: false
+        deleted: true
         data_type: string
         value: "@ 2026 Uney GmbH. All rights are reserved."
     timeout_domain_check:
@@ -61,7 +61,7 @@ params:
         data_type: number
         value: 5
     store_link:
-        deleted: false
+        deleted: true
         data_type: string
         value: "https://app.getkinshield.com"
     floating_button_hide_duration:
