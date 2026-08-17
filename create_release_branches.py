@@ -77,10 +77,10 @@ def confirm_or_cancel(prompt):
         while True:
             ch = sys.stdin.read(1)
             if ch in ("\r", "\n"):
-                print()
+                print("\r\n", end="", flush=True)
                 return
             if ch == "\x1b":
-                print("\nCancelled.")
+                print("\r\nCancelled.\r\n", end="", flush=True)
                 sys.exit(0)
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
