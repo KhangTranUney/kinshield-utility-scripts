@@ -1,37 +1,37 @@
-package name: com.kinshield
+package name: com.kinshield.qa
 standard:
-    subscription id: kinshield.pro.standard # android only
+    subscription id: qa.kinshield.pro.standard # android only
     subscription name: Standard Plan # android only
     plan:
         monthly:
-            id: kinshield.pro.standard.monthly
+            id: qa.kinshield.pro.standard.monthly
             name: Standard Monthly
             price: 7.99
-            android id: kinshield-pro-standard-monthly # android only
+            android id: qa-kinshield-pro-standard-monthly # android only
             android charge: immediately # android only | enum: immediately, at next billing date
             android resubscribe: false # android only | enum: true, false
         yearly:
-            id: kinshield.pro.standard.annual
+            id: qa.kinshield.pro.standard.annual
             name: Standard Annual
             price: 59.99
-            android id: kinshield-pro-standard-annual # android only
+            android id: qa-kinshield-pro-standard-annual # android only
             android charge: immediately # android only | enum: immediately, at next billing date
             android resubscribe: false # android only | enum: true, false
 premium:
-    subscription id: kinshield.pro.premium # android only
+    subscription id: qa.kinshield.pro.premium # android only
     subscription name: Premium Plan # android only
     plan:
         monthly:
-            id: kinshield.pro.premium.monthly
+            id: qa.kinshield.pro.premium.monthly
             name: Premium Monthly
             price: 9.99
-            android id: kinshield-pro-premium-monthly # android only
+            android id: qa-kinshield-pro-premium-monthly # android only
             android charge: immediately # android only | enum: immediately, at next billing date
             android resubscribe: false # android only | enum: true, false
         yearly:
-            id: kinshield.pro.premium.annual
+            id: qa.kinshield.pro.premium.annual
             name: Premium Annual
             price: 99.99
-            android id: kinshield-pro-premium-annual # android only
+            android id: qa-kinshield-pro-premium-annual # android only
             android charge: immediately # android only | enum: immediately, at next billing date
             android resubscribe: false # android only | enum: true, false
