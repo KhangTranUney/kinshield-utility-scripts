@@ -68,3 +68,11 @@ params:
         deleted: false
         data_type: number
         value: 3600
+    settings_message_app:
+        deleted: false
+        data_type: boolean
+        value: false
+    paywall_onboarding:
+        deleted: false
+        data_type: boolean
+        value: true
