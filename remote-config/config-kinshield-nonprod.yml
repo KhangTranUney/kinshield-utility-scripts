@@ -76,3 +76,7 @@ params:
         deleted: false
         data_type: boolean
         value: true
+    android_payment:
+        deleted: false
+        data_type: boolean
+        value: true
