@@ -24,16 +24,36 @@ API_URL = "https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/
 SCOPES = ["https://www.googleapis.com/auth/firebase.remoteconfig"]
 TIMEOUT_SECONDS = 30
 DATA_TYPES = {"string": "STRING", "number": "NUMBER", "boolean": "BOOLEAN", "json": "JSON"}
-ENVIRONMENTS = {
+PROJECTS = {
     "1": (
-        "prod",
-        SCRIPT_DIR / "config-kinshield-prod.yml",
-        SCRIPT_DIR / "credentials" / "kinshield-prod-firebase-adminsdk.json",
+        "KinShield",
+        {
+            "1": (
+                "prod",
+                SCRIPT_DIR / "config-kinshield-prod.yml",
+                SCRIPT_DIR / "credentials" / "kinshield-prod-firebase-adminsdk.json",
+            ),
+            "2": (
+                "non-prod",
+                SCRIPT_DIR / "config-kinshield-nonprod.yml",
+                SCRIPT_DIR / "credentials" / "kinshield-non-prod-firebase-adminsdk.json",
+            ),
+        },
     ),
     "2": (
-        "non-prod",
-        SCRIPT_DIR / "config-kinshield-nonprod.yml",
-        SCRIPT_DIR / "credentials" / "kinshield-non-prod-firebase-adminsdk.json",
+        "ShieldNet 360",
+        {
+            "1": (
+                "prod",
+                SCRIPT_DIR / "config-shieldnet360-prod.yml",
+                SCRIPT_DIR / "credentials" / "shieldnet360-prod-firebase-adminsdk-fbsvc.json",
+            ),
+            "2": (
+                "non-prod",
+                SCRIPT_DIR / "config-shieldnet360-nonprod.yml",
+                SCRIPT_DIR / "credentials" / "shieldnet360-nonprod-firebase-adminsdk.json",
+            ),
+        },
     ),
 }
 
@@ -43,6 +63,18 @@ class ConfigError(ValueError):
 
 
 def choose_environment() -> tuple[str, Path, Path]:
+    print("Choose the Firebase project:")
+    print("  1. KinShield")
+    print("  2. ShieldNet 360")
+    try:
+        project_choice = input("Enter 1 or 2: ").strip()
+    except EOFError as exc:
+        raise ConfigError("No Firebase project was selected.") from exc
+    project = PROJECTS.get(project_choice)
+    if project is None:
+        raise ConfigError("Invalid project. Choose 1 for KinShield or 2 for ShieldNet 360.")
+
+    project_name, environments = project
     print("Choose the Firebase environment:")
     print("  1. prod")
     print("  2. non-prod")
@@ -50,7 +82,7 @@ def choose_environment() -> tuple[str, Path, Path]:
         choice = input("Enter 1 or 2: ").strip()
     except EOFError as exc:
         raise ConfigError("No environment was selected.") from exc
-    environment = ENVIRONMENTS.get(choice)
+    environment = environments.get(choice)
     if environment is None:
         raise ConfigError("Invalid environment. Choose 1 for prod or 2 for non-prod.")
     name, config_path, service_account_path = environment
@@ -58,7 +90,7 @@ def choose_environment() -> tuple[str, Path, Path]:
         raise ConfigError(f"{name} config file does not exist: {config_path}")
     if not service_account_path.is_file():
         raise ConfigError(f"{name} service-account JSON does not exist: {service_account_path}")
-    return environment
+    return f"{project_name} {name}", config_path, service_account_path
 
 
 def load_manifest(path: Path) -> tuple[str, dict[str, dict[str, Any]]]:
