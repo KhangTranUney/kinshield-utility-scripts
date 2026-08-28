@@ -79,4 +79,4 @@ params:
     android_payment:
         deleted: false
         data_type: boolean
-        value: true
+        value: false
