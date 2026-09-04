@@ -3,4 +3,4 @@
 # Accepts ticket ID or full Jira link, e.g.:
 #   SAF-260
 #   https://aottws.atlassian.net/browse/SAF-260
-https://aottws.atlassian.net/browse/SAF-7564
+https://aottws.atlassian.net/browse/SAF-8554

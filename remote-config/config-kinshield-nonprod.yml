@@ -80,3 +80,7 @@ params:
         deleted: false
         data_type: boolean
         value: false
+    alerts_paywall_reminder_threshold_days:
+        deleted: false
+        data_type: number
+        value: 30
