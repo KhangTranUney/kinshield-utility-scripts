@@ -77,7 +77,7 @@ params:
         data_type: boolean
         value: true
     android_payment:
-        deleted: false
+        deleted: true
         data_type: boolean
         value: false
     alerts_paywall_reminder_threshold_days:
