@@ -84,3 +84,7 @@ params:
         deleted: false
         data_type: number
         value: 7
+    android_language_identification_threshold:
+        deleted: false
+        data_type: number
+        value: 0.9
