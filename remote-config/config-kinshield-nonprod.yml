@@ -88,3 +88,7 @@ params:
         deleted: false
         data_type: number
         value: 0.9
+    full_alert_access_days:
+        deleted: false
+        data_type: number
+        value: 30
