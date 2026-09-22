@@ -81,9 +81,9 @@ params:
         data_type: boolean
         value: false
     alerts_paywall_reminder_threshold_days:
-        deleted: false
+        deleted: true
         data_type: number
-        value: 30
+        value: 7
     android_language_identification_threshold:
         deleted: false
         data_type: number
