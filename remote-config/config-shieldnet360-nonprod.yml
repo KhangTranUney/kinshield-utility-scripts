@@ -23,4 +23,8 @@ params:
     enable_feature_access:
         deleted: false
         data_type: boolean
+        value: false
+    enable_feature_push_notification:
+        deleted: false
+        data_type: boolean
         value: true
