@@ -19,7 +19,7 @@ params:
     notif_permission_interval:
         deleted: false
         data_type: number
-        value: 604800
+        value: 180
     companion_qr_image:
         deleted: false
         data_type: string
