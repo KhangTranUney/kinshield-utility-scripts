@@ -201,7 +201,7 @@ def parameter_value(key: str, definition: dict[str, Any]) -> dict[str, Any]:
         return value
 
     desired: dict[str, Any] = {"valueType": DATA_TYPES[data_type]}
-    if "description" in definition:
+    if definition.get("description"):
         desired["description"] = definition["description"]
     if "value" in definition:
         desired["defaultValue"] = {"value": encode(definition["value"], "values")}
@@ -237,7 +237,10 @@ def merge_template(
             changes.append(("ADD", key, None, desired))
             continue
         if (
-            current.get("defaultValue") == desired.get("defaultValue")
+            (
+                "defaultValue" not in desired
+                or current.get("defaultValue") == desired.get("defaultValue")
+            )
             and current.get("conditionalValues") == desired.get("conditionalValues")
             and current.get("valueType", "STRING") == desired["valueType"]
             and (
@@ -251,11 +254,12 @@ def merge_template(
         updated["valueType"] = desired["valueType"]
         if "description" in desired:
             updated["description"] = desired["description"]
-        for field in ("defaultValue", "conditionalValues"):
-            if field in desired:
-                updated[field] = desired[field]
-            else:
-                updated.pop(field, None)
+        if "defaultValue" in desired:
+            updated["defaultValue"] = desired["defaultValue"]
+        if "conditionalValues" in desired:
+            updated["conditionalValues"] = desired["conditionalValues"]
+        else:
+            updated.pop("conditionalValues", None)
         parameters[key] = updated
         changes.append(("UPDATE", key, current, updated))
     return template, changes

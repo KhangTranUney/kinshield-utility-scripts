@@ -1,94 +1,122 @@
 project_id: 129791107526
 params:
     playstore_link:
+        description: ""
         deleted: false
         data_type: string
-        value: "market://details?id=com.kinshield"
+        value: market://details?id=com.kinshield
     appstore_link:
+        description: ""
         deleted: false
         data_type: string
-        value: "https://itunes.apple.com/app/id6738410298?action=write-review"
+        value: https://itunes.apple.com/app/id6738410298?action=write-review
     notif_token_update:
+        description: ""
         deleted: false
         data_type: number
         value: 604800
     notif_permission_max:
+        description: ""
         deleted: false
         data_type: number
         value: 3
     notif_permission_interval:
+        description: ""
         deleted: false
         data_type: number
         value: 604800
     companion_qr_image:
+        description: ""
         deleted: false
         data_type: string
-        value: "https://content.getkinshield.com/app/qr-invitation.jpg"
+        value: https://content.getkinshield.com/app/qr-invitation.jpg
     app_share_url:
+        description: ""
         deleted: false
         data_type: string
-        value: "https://app.getkinshield.com/"
+        value: https://app.getkinshield.com/
     todo_priority:
+        description: ""
         deleted: false
         data_type: json
-        value: "{}"
+        value: '{}'
     todo_priority_high:
+        description: ""
         deleted: false
         data_type: number
         value: 10
     settings_faq_url:
+        description: ""
         deleted: false
         data_type: string
-        value: "https://getkinshield.com/?utm_source=inapp#faq"
+        value: https://getkinshield.com/?utm_source=inapp#faq
     settings_about_url:
+        description: ""
         deleted: false
         data_type: string
-        value: "https://getkinshield.com/?utm_source=inapp"
+        value: https://getkinshield.com/?utm_source=inapp
     settings_privacy_url:
+        description: ""
         deleted: false
         data_type: string
-        value: "https://getkinshield.com/privacy-policy?utm_source=inapp"
+        value: https://getkinshield.com/privacy-policy?utm_source=inapp
     settings_tos_url:
+        description: ""
         deleted: false
         data_type: string
-        value: "https://getkinshield.com/tos?utm_source=inapp"
+        value: https://getkinshield.com/tos?utm_source=inapp
     settings_legal_info:
+        description: ""
         deleted: true
         data_type: string
-        value: "@ 2026 Uney GmbH. All rights are reserved."
+        value: '@ 2026 Uney GmbH. All rights are reserved.'
     timeout_domain_check:
+        description: ""
         deleted: false
         data_type: number
         value: 5
     store_link:
+        description: ""
         deleted: true
         data_type: string
-        value: "https://app.getkinshield.com"
+        value: https://app.getkinshield.com
     floating_button_hide_duration:
+        description: ""
         deleted: false
         data_type: number
         value: 3600
     settings_message_app:
+        description: ""
         deleted: false
         data_type: boolean
         value: false
     paywall_onboarding:
+        description: ""
         deleted: false
         data_type: boolean
         value: true
     android_payment:
+        description: ""
         deleted: true
         data_type: boolean
         value: false
     alerts_paywall_reminder_threshold_days:
+        description: ""
         deleted: true
         data_type: number
         value: 7
     android_language_identification_threshold:
+        description: ""
         deleted: false
         data_type: number
         value: 0.9
     full_alert_access_days:
+        description: ""
         deleted: false
         data_type: number
         value: 30
+    safari_extension_setup_url:
+        description: ""
+        deleted: false
+        data_type: string
+        value: https://safari-extension-setup-208492520960.us-west1.run.app

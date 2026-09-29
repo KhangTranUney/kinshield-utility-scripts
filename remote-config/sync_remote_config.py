@@ -6,7 +6,8 @@ asks before updating the selected YAML file. Parameters use exactly one of
 ``value`` or ``condition_value``. Existing local values and data types are
 preserved where possible; descriptions, conditions, conditional values, and
 parameters that exist only in Firebase are synchronized. Parameters that exist
-only locally are marked ``deleted: true``.
+only locally are marked ``deleted: true``. Missing descriptions are written as
+an empty string.
 """
 
 from __future__ import annotations
@@ -162,8 +163,12 @@ def display_changes(
         local_conditions_for_parameter = local_conditional_values(local_definition)
         parameter_changes: list[str] = []
 
-        if local_description != remote_description:
-            parameter_changes.append(f"description: {local_description!r} -> {remote_description!r}")
+        if "description" not in local_definition or local_description != remote_description:
+            parameter_changes.append(
+                "description: "
+                f"{json.dumps(local_description, ensure_ascii=False)} -> "
+                f"{json.dumps(remote_description, ensure_ascii=False)}"
+            )
         if local_conditions_for_parameter != remote_conditions_for_parameter:
             parameter_changes.append(
                 "condition_value: "
@@ -234,7 +239,14 @@ def display_changes(
     for key in local_only:
         local_definition = local_params[key]
         print(f"\n{key}")
-        if isinstance(local_definition, dict) and local_definition.get("deleted") is True:
+        if not isinstance(local_definition, dict):
+            continue
+        if "description" not in local_definition:
+            print('  - description is missing locally (will be added as "")')
+            updated["params"][key]["description"] = ""
+            parameter_changes_count += 1
+            changes = True
+        if local_definition.get("deleted") is True:
             print("  - exists locally but not in Firebase (already marked deleted)")
             continue
         print("  - exists locally but not in Firebase (will be marked deleted)")
@@ -250,6 +262,7 @@ def display_changes(
 
 
 def write_document(path: Path, document: dict[str, Any]) -> None:
+    document = ordered_parameter_fields(document)
     content = yaml.safe_dump(
         document,
         allow_unicode=True,
@@ -258,6 +271,7 @@ def write_document(path: Path, document: dict[str, Any]) -> None:
         indent=4,
         width=4096,
     )
+    content = quote_descriptions(content)
     content = indent_condition_values(content)
     directory = path.parent
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=directory, delete=False) as output:
@@ -268,6 +282,26 @@ def write_document(path: Path, document: dict[str, Any]) -> None:
     except OSError:
         temporary_path.unlink(missing_ok=True)
         raise
+
+
+def ordered_parameter_fields(document: dict[str, Any]) -> dict[str, Any]:
+    ordered_document = deepcopy(document)
+    params = ordered_document.get("params")
+    if not isinstance(params, dict):
+        return ordered_document
+    field_order = ("description", "deleted", "data_type", "value", "condition_value")
+    for key, definition in params.items():
+        if not isinstance(definition, dict):
+            continue
+        ordered: dict[str, Any] = {}
+        for field in field_order:
+            if field in definition:
+                ordered[field] = definition[field]
+        for field, value in definition.items():
+            if field not in ordered:
+                ordered[field] = value
+        params[key] = ordered
+    return ordered_document
 
 
 def indent_condition_values(content: str) -> str:
@@ -287,6 +321,32 @@ def indent_condition_values(content: str) -> str:
             continue
         condition_indent = None
         formatted.append(line)
+    return "\n".join(formatted) + "\n"
+
+
+def quote_descriptions(content: str) -> str:
+    """Render every description as a YAML double-quoted string."""
+
+    lines = content.splitlines()
+    formatted: list[str] = []
+    for line in lines:
+        stripped = line.lstrip()
+        if not stripped.startswith("description:"):
+            formatted.append(line)
+            continue
+        indentation = line[: len(line) - len(stripped)]
+        raw_value = stripped[len("description:") :].strip()
+        try:
+            value = yaml.safe_load(raw_value)
+        except yaml.YAMLError:
+            formatted.append(line)
+            continue
+        if isinstance(value, str):
+            formatted.append(
+                f"{indentation}description: {json.dumps(value, ensure_ascii=False)}"
+            )
+        else:
+            formatted.append(line)
     return "\n".join(formatted) + "\n"
 
 
