@@ -114,6 +114,8 @@ def load_manifest(path: Path) -> tuple[str, dict[str, dict[str, Any]]]:
             raise ConfigError("Every parameter key must be a non-empty string.")
         if not isinstance(definition, dict):
             raise ConfigError(f"Parameter {key!r} must be a mapping.")
+        if "description" in definition and not isinstance(definition["description"], str):
+            raise ConfigError(f"Parameter {key!r}: description must be a YAML string.")
         deleted = definition.get("deleted", False)
         if not isinstance(deleted, bool):
             raise ConfigError(f"Parameter {key!r}: deleted must be true or false.")
@@ -124,35 +126,92 @@ def load_manifest(path: Path) -> tuple[str, dict[str, dict[str, Any]]]:
             raise ConfigError(
                 f"Parameter {key!r}: data_type must be one of {', '.join(DATA_TYPES)}."
             )
-        if "value" not in definition:
-            raise ConfigError(f"Parameter {key!r}: value is required unless deleted is true.")
+        has_value = "value" in definition
+        has_condition_value = "condition_value" in definition
+        if has_value == has_condition_value:
+            raise ConfigError(
+                f"Parameter {key!r}: exactly one of value or condition_value is required."
+            )
+        if has_condition_value:
+            condition_values = definition["condition_value"]
+            if not isinstance(condition_values, list) or not condition_values:
+                raise ConfigError(
+                    f"Parameter {key!r}: condition_value must be a non-empty list."
+                )
+            for condition_value in condition_values:
+                if not isinstance(condition_value, dict) or len(condition_value) != 1:
+                    raise ConfigError(
+                        f"Parameter {key!r}: each condition_value entry must contain one condition."
+                    )
+                condition_name, value = next(iter(condition_value.items()))
+                if not isinstance(condition_name, str) or not condition_name:
+                    raise ConfigError(
+                        f"Parameter {key!r}: condition names must be non-empty strings."
+                    )
+                if data_type == "string" and not isinstance(value, str):
+                    raise ConfigError(
+                        f"Parameter {key!r}: string condition values must be YAML strings."
+                    )
+                if data_type == "boolean" and not isinstance(value, bool):
+                    raise ConfigError(
+                        f"Parameter {key!r}: boolean condition values must be true or false."
+                    )
+                if data_type == "number" and (
+                    isinstance(value, bool) or not isinstance(value, (int, float))
+                ):
+                    raise ConfigError(
+                        f"Parameter {key!r}: number condition values must be YAML numbers."
+                    )
+                if data_type == "json":
+                    if not isinstance(value, str):
+                        raise ConfigError(
+                            f"Parameter {key!r}: json condition values must be JSON strings."
+                        )
+                    try:
+                        json.loads(value)
+                    except json.JSONDecodeError as exc:
+                        raise ConfigError(
+                            f"Parameter {key!r}: invalid JSON condition value: {exc.msg}."
+                        ) from exc
     return str(project_id), params
 
 
 def parameter_value(key: str, definition: dict[str, Any]) -> dict[str, Any]:
     data_type = definition["data_type"]
-    value = definition["value"]
-    if data_type == "string":
+
+    def encode(value: Any, label: str) -> str:
+        if data_type == "string":
+            if not isinstance(value, str):
+                raise ConfigError(f"Parameter {key!r}: {label} must be a YAML string.")
+            return value
+        if data_type == "boolean":
+            if not isinstance(value, bool):
+                raise ConfigError(f"Parameter {key!r}: {label} must be true or false.")
+            return "true" if value else "false"
+        if data_type == "number":
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise ConfigError(f"Parameter {key!r}: {label} must be a YAML number.")
+            return str(value)
         if not isinstance(value, str):
-            raise ConfigError(f"Parameter {key!r}: string values must be YAML strings.")
-        encoded_value = value
-    elif data_type == "boolean":
-        if not isinstance(value, bool):
-            raise ConfigError(f"Parameter {key!r}: boolean values must be true or false.")
-        encoded_value = "true" if value else "false"
-    elif data_type == "number":
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise ConfigError(f"Parameter {key!r}: number values must be YAML numbers.")
-        encoded_value = str(value)
-    else:
-        if not isinstance(value, str):
-            raise ConfigError(f"Parameter {key!r}: json values must be JSON encoded as a YAML string.")
+            raise ConfigError(f"Parameter {key!r}: {label} must be JSON encoded as a YAML string.")
         try:
             json.loads(value)
         except json.JSONDecodeError as exc:
-            raise ConfigError(f"Parameter {key!r}: invalid JSON value: {exc.msg}.") from exc
-        encoded_value = value
-    return {"defaultValue": {"value": encoded_value}, "valueType": DATA_TYPES[data_type]}
+            raise ConfigError(f"Parameter {key!r}: invalid JSON {label}: {exc.msg}.") from exc
+        return value
+
+    desired: dict[str, Any] = {"valueType": DATA_TYPES[data_type]}
+    if "description" in definition:
+        desired["description"] = definition["description"]
+    if "value" in definition:
+        desired["defaultValue"] = {"value": encode(definition["value"], "values")}
+    else:
+        desired["conditionalValues"] = {
+            condition_name: {"value": encode(value, "condition values")}
+            for condition_value in definition["condition_value"]
+            for condition_name, value in condition_value.items()
+        }
+    return desired
 
 
 def merge_template(
@@ -178,13 +237,25 @@ def merge_template(
             changes.append(("ADD", key, None, desired))
             continue
         if (
-            current.get("defaultValue") == desired["defaultValue"]
+            current.get("defaultValue") == desired.get("defaultValue")
+            and current.get("conditionalValues") == desired.get("conditionalValues")
             and current.get("valueType", "STRING") == desired["valueType"]
+            and (
+                "description" not in desired
+                or current.get("description") == desired["description"]
+            )
         ):
             continue
         # Keep descriptions, conditional values, and other existing metadata.
         updated = dict(current)
-        updated.update(desired)
+        updated["valueType"] = desired["valueType"]
+        if "description" in desired:
+            updated["description"] = desired["description"]
+        for field in ("defaultValue", "conditionalValues"):
+            if field in desired:
+                updated[field] = desired[field]
+            else:
+                updated.pop(field, None)
         parameters[key] = updated
         changes.append(("UPDATE", key, current, updated))
     return template, changes
@@ -198,7 +269,10 @@ def parameter_summary(parameter: dict[str, Any] | None) -> str:
         value = "<in-app default>"
     else:
         value = json.dumps(default_value["value"], ensure_ascii=False)
-    return f"type={parameter.get('valueType', 'STRING')}, default={value}"
+    description = ""
+    if "description" in parameter:
+        description = f", description={json.dumps(parameter['description'], ensure_ascii=False)}"
+    return f"type={parameter.get('valueType', 'STRING')}, default={value}{description}"
 
 
 def display_changes(changes: list[tuple[str, str, dict[str, Any] | None, dict[str, Any] | None]]) -> None:
