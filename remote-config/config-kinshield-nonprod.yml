@@ -21,7 +21,7 @@ params:
         data_type: number
         value: 3
     notif_permission_interval:
-        description: ""
+        description: "Seconds"
         deleted: false
         data_type: number
         value: 180
