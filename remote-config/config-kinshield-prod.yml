@@ -125,3 +125,13 @@ params:
         deleted: false
         data_type: string
         value: https://safari-extension-setup-208492520960.us-west1.run.app
+    input_lang_threshold_high:
+        description: The upper confidence boundary for determining the input text language.
+        deleted: false
+        data_type: number
+        value: 0.6
+    input_lang_threshold_low:
+        description: The lower confidence boundary for determining the input text language.
+        deleted: false
+        data_type: number
+        value: 0.1
