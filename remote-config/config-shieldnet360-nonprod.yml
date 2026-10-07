@@ -44,6 +44,16 @@ params:
             - QA-Android: https://qa-shieldnet-portal.qualgo.dev/forgot-password
             - DEV-iOS: https://dev-shieldnet-portal.qualgo.dev/forgot-password
             - QA-iOS: https://qa-shieldnet-portal.qualgo.dev/forgot-password
+    android_update_app_url:
+        description: 'Update app URL for Android'
+        deleted: false
+        data_type: string
+        value: https://appdistribution.firebase.google.com/testerapps/1:292975266036:android:9cc9bd7e945c42f774b6a1/releases/5pgjr2sou0ugo?utm_source=firebase-console
+    ios_update_app_url:
+        description: 'Update app URL for iOS'
+        deleted: false
+        data_type: string
+        value: https://qualgotechnologies.sharepoint.com/:u:/g/IQAXF7yth_27RrdISGHCVVl9Abb42QWtlnEgTj87j4oB8k4?e=5fOSlx&isSPOFile=1&xsdata=MDV8MDJ8fDFlMzcxZWFhNmZjZTQ2NGFhZGZlMDhkZjIyYmI3OGVlfDQ2YWIzZWUxMjRlYjQxMThhM2U1ZGM3NDgxZGY1ZWEyfDB8MHw2MzkyNjc4NjA2OTMwMzY1NDJ8VW5rbm93bnxWR1ZoYlhOVFpXTjFjbWwwZVZObGNuWnBZMlY4ZXlKRFFTSTZJbFJsWVcxelgwRlVVRk5sY25acFkyVmZVMUJQVEU5R0lpd2lWaUk2SWpBdU1DNHdNREF3SWl3aVVDSTZJbGRwYmpNeUlpd2lRVTRpT2lKUGRHaGxjaUlzSWxkVUlqb3hNWDA9fDF8TDJOb1lYUnpMekU1T2pCak9ETTVOV1JpTWpZek5EUTBaREJoWlRrNU0yWXhPV0psTkRNMVpEbGlRSFJvY21WaFpDNTJNaTl0WlhOellXZGxjeTh4TnpreE1UZzVNalkzTmpZNXw1YWJjNWJjN2RkOTY0OGU1NWZiYzA4ZGYyMmJiNzhlZXw0YTQ4YTQyNzUwMzE0NDAzYjZmOTAyNTkxNjQzYWVlOA%3D%3D&sdata=dTdIa05Mc1JMQjZZaE43eEFoSXAwVitZMFlQVmcyYXRiTE5FT2o1dE1Oaz0%3D&ovuser=46ab3ee1-24eb-4118-a3e5-dc7481df5ea2%2Ckhoa.md%40qualgo.net
 conditions:
     DEV-Android:
         expression: app.id == '1:292975266036:android:adc339a4db3e1cdb74b6a1'
