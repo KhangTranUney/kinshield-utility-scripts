@@ -54,6 +54,11 @@ PROJECTS = {
         "packages": {"prod": "com.pyffe", "non-prod": "com.pyffe.qa"},
         "credential": SCRIPT_DIR / "credentials" / "service-account-pyffe.json",
     },
+    "strazee": {
+        "display_name": "Strazee",
+        "packages": {"prod": "com.strazee", "non-prod": "com.strazee.qa"},
+        "credential": SCRIPT_DIR / "credentials" / "service-account-strazee.json",
+    },
     "kinsense": {
         "display_name": "KinSense",
         "packages": {"prod": "com.kinsense", "non-prod": "com.kinsense.qa"},
@@ -108,7 +113,7 @@ def prompt_choice(prompt: str, choices: dict[str, tuple[str, str]]) -> str:
 def select_target() -> Target:
     product_key = prompt_choice(
         "Choose the Google Play product:",
-        {"1": ("pyffe", "Pyffe"), "2": ("kinsense", "KinSense"), "3": ("kinshield", "KinShield")},
+        {"1": ("pyffe", "Pyffe"), "2": ("strazee", "Strazee"), "3": ("kinsense", "KinSense"), "4": ("kinshield", "KinShield")},
     )
     environment = prompt_choice(
         "Choose the environment:",

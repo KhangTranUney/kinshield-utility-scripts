@@ -1,0 +1,38 @@
+package name: com.strazee
+family 1:
+    care:
+        subscription id: com.strazee.family.care.1 # android only
+        subscription name: Strazee Care 01 # android only
+        plan:
+            monthly:
+                id: com.strazee.family.care.monthly.1
+                name: Strazee Care Monthly 01
+                price: 5.99
+                android id: com-strazee-family-care-monthly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
+            annual:
+                id: com.strazee.family.care.annual.1
+                name: Strazee Care Annual 01
+                price: 59.99
+                android id: com-strazee-family-care-annual-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
+    protect:
+        subscription id: com.strazee.family.protect.1 # android only
+        subscription name: Strazee Protect 01 # android only
+        plan:
+            monthly:
+                id: com.strazee.family.protect.monthly.1
+                name: Strazee Protect Monthly 01
+                price: 9.99
+                android id: com-strazee-family-protect-monthly-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false
+            annual:
+                id: com.strazee.family.protect.annual.1
+                name: Strazee Protect Annual 01
+                price: 99.99
+                android id: com-strazee-family-protect-annual-1 # android only
+                android charge: immediately # android only | enum: immediately, at next billing date
+                android resubscribe: false # android only | enum: true, false

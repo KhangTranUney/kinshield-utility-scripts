@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create Google Play subscriptions for Pyffe, KinSense, or KinShield.
+"""Create Google Play subscriptions for Pyffe, Strazee, KinSense, or KinShield.
 
 Choose the product and environment interactively. The existing QA Android
 configuration is used for the non-production environment.
@@ -39,13 +39,20 @@ PROJECTS = {
         },
     ),
     "2": (
+        "Strazee",
+        {
+            "prod": (SCRIPT_DIR / "configs" / "payment-config-strazee-prod-android.yml", SCRIPT_DIR / "credentials" / "service-account-strazee.json"),
+            "non-prod": (SCRIPT_DIR / "configs" / "payment-config-strazee-qa-android.yml", SCRIPT_DIR / "credentials" / "service-account-strazee.json"),
+        },
+    ),
+    "3": (
         "KinSense",
         {
             "prod": (SCRIPT_DIR / "configs" / "payment-config-kinsense-prod-android.yml", SCRIPT_DIR / "credentials" / "service-account-kinsense.json"),
             "non-prod": (SCRIPT_DIR / "configs" / "payment-config-kinsense-qa-android.yml", SCRIPT_DIR / "credentials" / "service-account-kinsense.json"),
         },
     ),
-    "3": (
+    "4": (
         "KinShield",
         {
             "prod": (SCRIPT_DIR / "configs" / "payment-config-kinshield-prod-android.yml", SCRIPT_DIR / "credentials" / "service-account-kinshield.json"),
@@ -68,15 +75,16 @@ def parse_args() -> argparse.Namespace:
 def choose_config() -> tuple[str, str, Path, Path]:
     print("Choose the Google Play project:")
     print("  1. Pyffe")
-    print("  2. KinSense")
-    print("  3. KinShield")
+    print("  2. Strazee")
+    print("  3. KinSense")
+    print("  4. KinShield")
     try:
-        project_choice = input("Enter 1, 2, or 3: ").strip()
+        project_choice = input("Enter 1, 2, 3, or 4: ").strip()
     except EOFError as exc:
         raise ConfigError("No project was selected.") from exc
     project = PROJECTS.get(project_choice)
     if project is None:
-        raise ConfigError("Invalid project. Choose 1 for Pyffe, 2 for KinSense, or 3 for KinShield.")
+        raise ConfigError("Invalid project. Choose 1 for Pyffe, 2 for Strazee, 3 for KinSense, or 4 for KinShield.")
 
     print("Choose the environment:")
     print("  1. prod")
