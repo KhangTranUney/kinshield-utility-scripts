@@ -49,6 +49,11 @@ class Target:
 
 
 PROJECTS = {
+    "pyffe": {
+        "display_name": "Pyffe",
+        "packages": {"prod": "com.pyffe", "non-prod": "com.pyffe.qa"},
+        "credential": SCRIPT_DIR / "credentials" / "service-account-pyffe.json",
+    },
     "kinsense": {
         "display_name": "KinSense",
         "packages": {"prod": "com.kinsense", "non-prod": "com.kinsense.qa"},
@@ -72,15 +77,17 @@ def parse_args() -> argparse.Namespace:
 
 
 def prompt_choice(prompt: str, choices: dict[str, tuple[str, str]]) -> str:
+    choice_labels = " or ".join(choices)
+    input_prompt = f"Enter {choice_labels}: "
     print(prompt)
     for key, (_, label) in choices.items():
         print(f"  {key}. {label}")
     print("  Press Esc to cancel.")
     try:
         if not sys.stdin.isatty() or not sys.stdout.isatty():
-            value = input("Enter 1 or 2: ").strip().lower()
+            value = input(input_prompt).strip().lower()
         else:
-            print("Enter 1 or 2: ", end="", flush=True)
+            print(input_prompt, end="", flush=True)
             file_descriptor = sys.stdin.fileno()
             previous_settings = termios.tcgetattr(file_descriptor)
             try:
@@ -95,13 +102,13 @@ def prompt_choice(prompt: str, choices: dict[str, tuple[str, str]]) -> str:
         raise CatalogCancelled("Selection cancelled.")
     if value in choices:
         return choices[value][0]
-    raise CatalogError(f"Invalid selection: {value!r}. Choose 1 or 2.")
+    raise CatalogError(f"Invalid selection: {value!r}. Choose {choice_labels}.")
 
 
 def select_target() -> Target:
     product_key = prompt_choice(
         "Choose the Google Play product:",
-        {"1": ("kinsense", "KinSense"), "2": ("kinshield", "KinShield")},
+        {"1": ("pyffe", "Pyffe"), "2": ("kinsense", "KinSense"), "3": ("kinshield", "KinShield")},
     )
     environment = prompt_choice(
         "Choose the environment:",
