@@ -1,38 +1,38 @@
 package name: com.pyffe.qa
 account pro:
     standard:
-        subscription id: qa.pyffe.pro.standard # android only
+        subscription id: com.pyffe.qa.standard # android only
         subscription name: Standard Plan # android only
         plan:
             monthly:
-                id: qa.pyffe.pro.standard.monthly
+                id: com.pyffe.qa.standard.monthly
                 name: Standard Monthly
                 price: 7.99
-                android id: qa-pyffe-pro-standard-monthly # android only
+                android id: com-pyffe-qa-standard-monthly # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             yearly:
-                id: qa.pyffe.pro.standard.annual
+                id: com.pyffe.qa.standard.annual
                 name: Standard Annual
                 price: 59.99
-                android id: qa-pyffe-pro-standard-annual # android only
+                android id: com-pyffe-qa-standard-annual # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
     premium:
-        subscription id: qa.pyffe.pro.premium # android only
+        subscription id: com.pyffe.qa.premium # android only
         subscription name: Premium Plan # android only
         plan:
             monthly:
-                id: qa.pyffe.pro.premium.monthly
+                id: com.pyffe.qa.premium.monthly
                 name: Premium Monthly
                 price: 9.99
-                android id: qa-pyffe-pro-premium-monthly # android only
+                android id: com-pyffe-qa-premium-monthly # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             yearly:
-                id: qa.pyffe.pro.premium.annual
+                id: com.pyffe.qa.premium.annual
                 name: Premium Annual
                 price: 99.99
-                android id: qa-pyffe-pro-premium-annual # android only
+                android id: com-pyffe-qa-premium-annual # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
