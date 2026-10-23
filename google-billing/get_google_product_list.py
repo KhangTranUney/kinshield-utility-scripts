@@ -11,8 +11,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import termios
-import tty
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,6 +20,10 @@ from urllib.parse import quote
 import google.auth.transport.requests
 import requests
 from google.oauth2 import service_account
+
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from interactive_input import InputCancelled, read_input
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -36,7 +38,7 @@ class CatalogError(RuntimeError):
 
 
 class CatalogCancelled(CatalogError):
-    """Raised when the user presses Escape during interactive selection."""
+    """Raised when the user cancels interactive selection."""
 
 
 @dataclass(frozen=True)
@@ -83,24 +85,14 @@ def parse_args() -> argparse.Namespace:
 
 def prompt_choice(prompt: str, choices: dict[str, tuple[str, str]]) -> str:
     choice_labels = " or ".join(choices)
-    input_prompt = f"Enter {choice_labels}: "
     print(prompt)
     for key, (_, label) in choices.items():
         print(f"  {key}. {label}")
     print("  Press Esc to cancel.")
     try:
-        if not sys.stdin.isatty() or not sys.stdout.isatty():
-            value = input(input_prompt).strip().lower()
-        else:
-            print(input_prompt, end="", flush=True)
-            file_descriptor = sys.stdin.fileno()
-            previous_settings = termios.tcgetattr(file_descriptor)
-            try:
-                tty.setraw(file_descriptor)
-                value = sys.stdin.read(1).lower()
-            finally:
-                termios.tcsetattr(file_descriptor, termios.TCSADRAIN, previous_settings)
-            print(value)
+        value = read_input(f"Enter {choice_labels}, then press Enter: ").strip().lower()
+    except InputCancelled as exc:
+        raise CatalogCancelled("Selection cancelled.") from exc
     except EOFError as exc:
         raise CatalogError("No selection was provided. Use the numbered menu in an interactive terminal.") from exc
     if value == "\x1b":

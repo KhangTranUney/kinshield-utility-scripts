@@ -13,8 +13,6 @@ from __future__ import annotations
 
 import json
 import sys
-import termios
-import tty
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -27,6 +25,10 @@ from google.oauth2 import service_account
 
 # Reports record the requested work and its result. They are ignored by Git
 # because they are generated each time this module runs.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from interactive_input import confirm_input
+
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPORT_DIR = SCRIPT_DIR / "reports"
 # Google Play Developer API endpoint and OAuth permission used for all requests.
@@ -225,28 +227,11 @@ def print_creation_plan(package_name: str, subscriptions: list[dict[str, Any]]) 
             )
 
 
-def confirm_creation() -> bool:
-    """Require Enter to continue; Esc is the only cancellation key."""
+def confirm_creation():
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         raise RuntimeError("Creation requires an interactive terminal confirmation (Enter or Esc).")
-    print("\nPress Enter to create these DRAFT subscriptions, or Esc to cancel: ", end="", flush=True)
-    fd = sys.stdin.fileno()
-    previous_settings = termios.tcgetattr(fd)
-    confirmed = False
-    try:
-        # Raw mode lets us distinguish a single Esc press from other input.
-        tty.setraw(fd)
-        while True:
-            key = sys.stdin.read(1)
-            if key in ("\r", "\n"):
-                confirmed = True
-                break
-            if key == "\x1b":
-                break
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, previous_settings)
-    print("\nConfirmed." if confirmed else "\nCancelled. No Google Play changes were made.")
-    return confirmed
+    return confirm_input("Create these DRAFT subscriptions?")
+
 
 
 def post_subscriptions(

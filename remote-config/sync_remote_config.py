@@ -15,11 +15,9 @@ from __future__ import annotations
 import json
 import os
 import sys
-import termios
 import tempfile
 from copy import deepcopy
 from pathlib import Path
-import tty
 from typing import Any
 
 import yaml
@@ -28,6 +26,10 @@ from google.oauth2 import service_account
 import google.auth.transport.requests
 
 import publish_remote_config as publisher
+
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from interactive_input import confirm_input
 
 
 REMOTE_TYPES = {value: key for key, value in publisher.DATA_TYPES.items()}
@@ -350,24 +352,11 @@ def quote_descriptions(content: str) -> str:
     return "\n".join(formatted) + "\n"
 
 
-def confirm_update(config_path: Path) -> bool:
+def confirm_update(config_path: Path):
     if not sys.stdin.isatty():
-        raise publisher.ConfigError("Updating requires an interactive terminal to confirm with Enter or Esc.")
-    print(f"\nPress Enter to update {config_path.name}, or Esc to cancel: ", end="", flush=True)
-    fd = sys.stdin.fileno()
-    original_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)
-        key = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, original_settings)
-    print()
-    if key in ("\r", "\n"):
-        return True
-    if key == "\x1b":
-        return False
-    print("Cancelled: only Enter confirms the update.")
-    return False
+        raise publisher.ConfigError("Updating requires an interactive terminal confirmation (Enter or Esc).")
+    return confirm_input(f"Update {config_path.name}?")
+
 
 
 def main() -> int:

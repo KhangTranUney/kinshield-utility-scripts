@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-import getpass
 import os
 import subprocess
 import sys
+
+from interactive_input import read_input
 
 
 ZSHRC_PATH = os.path.expanduser("~/.zshrc")
@@ -12,7 +13,7 @@ EXPORT_LINE = f'export {TOKEN_KEY}='
 
 def ask_for_token() -> str:
     print(f"Enter your {TOKEN_KEY} (input hidden):")
-    token = getpass.getpass("> ").strip()
+    token = read_input("> (Enter to submit, Esc to cancel) ", hidden=True).strip()
     if not token:
         print("Error: token cannot be empty.")
         sys.exit(1)

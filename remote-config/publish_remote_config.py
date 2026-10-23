@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import json
 import sys
-import termios
-import tty
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +15,10 @@ import google.auth.transport.requests
 import requests
 import yaml
 from google.oauth2 import service_account
+
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from interactive_input import confirm_input, read_input
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -67,7 +69,7 @@ def choose_environment() -> tuple[str, Path, Path]:
     print("  1. KinShield")
     print("  2. ShieldNet 360")
     try:
-        project_choice = input("Enter 1 or 2: ").strip()
+        project_choice = read_input("Enter 1 or 2: ").strip()
     except EOFError as exc:
         raise ConfigError("No Firebase project was selected.") from exc
     project = PROJECTS.get(project_choice)
@@ -79,7 +81,7 @@ def choose_environment() -> tuple[str, Path, Path]:
     print("  1. prod")
     print("  2. non-prod")
     try:
-        choice = input("Enter 1 or 2: ").strip()
+        choice = read_input("Enter 1 or 2: ").strip()
     except EOFError as exc:
         raise ConfigError("No environment was selected.") from exc
     environment = environments.get(choice)
@@ -287,24 +289,11 @@ def display_changes(changes: list[tuple[str, str, dict[str, Any] | None, dict[st
         print(f"  Desired: {parameter_summary(desired)}")
 
 
-def confirm_publish() -> bool:
+def confirm_publish():
     if not sys.stdin.isatty():
-        raise ConfigError("Publishing requires an interactive terminal to confirm with Enter or Esc.")
-    print("\nPress Enter to publish these changes, or Esc to cancel: ", end="", flush=True)
-    fd = sys.stdin.fileno()
-    original_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)
-        key = sys.stdin.read(1)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, original_settings)
-    print()
-    if key in ("\r", "\n"):
-        return True
-    if key == "\x1b":
-        return False
-    print("Cancelled: only Enter confirms publishing.")
-    return False
+        raise ConfigError("Publishing requires an interactive terminal confirmation (Enter or Esc).")
+    return confirm_input("Publish these changes?")
+
 
 
 def response_error(response: requests.Response) -> str:

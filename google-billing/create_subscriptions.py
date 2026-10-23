@@ -29,6 +29,10 @@ PRORATION_MODES = {
 }
 RESUBSCRIBE_STATES = {True: "RESUBSCRIBE_STATE_ACTIVE", False: "RESUBSCRIBE_STATE_INACTIVE"}
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from interactive_input import read_input
+
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECTS = {
     "1": (
@@ -79,7 +83,7 @@ def choose_config() -> tuple[str, str, Path, Path]:
     print("  3. KinSense")
     print("  4. KinShield")
     try:
-        project_choice = input("Enter 1, 2, 3, or 4: ").strip()
+        project_choice = read_input("Enter 1, 2, 3, or 4: ").strip()
     except EOFError as exc:
         raise ConfigError("No project was selected.") from exc
     project = PROJECTS.get(project_choice)
@@ -90,7 +94,7 @@ def choose_config() -> tuple[str, str, Path, Path]:
     print("  1. prod")
     print("  2. non-prod (QA)")
     try:
-        environment_choice = input("Enter 1 or 2: ").strip().lower()
+        environment_choice = read_input("Enter 1 or 2: ").strip().lower()
     except EOFError as exc:
         raise ConfigError("No environment was selected.") from exc
     environment = {"1": "prod", "2": "non-prod", "prod": "prod", "non-prod": "non-prod", "qa": "non-prod"}.get(environment_choice)

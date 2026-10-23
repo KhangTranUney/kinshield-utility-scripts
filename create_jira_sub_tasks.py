@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
+
+from interactive_input import confirm_input, read_input
 import re
-import tty
-import termios
 import requests
 from pathlib import Path
 
@@ -56,27 +56,9 @@ def load_env():
 
 
 def confirm_or_cancel(prompt):
-    print(f"\n{prompt}: ", end="", flush=True)
-    try:
-        fd = sys.stdin.fileno()
-        old = termios.tcgetattr(fd)
-        try:
-            tty.setraw(fd)
-            while True:
-                ch = sys.stdin.read(1)
-                if ch in ("\r", "\n"):
-                    print()
-                    return
-                if ch == "\x1b":
-                    print("\nCancelled.")
-                    sys.exit(0)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old)
-    except termios.error:
-        response = input()
-        if response.lower() in ("n", "no", "cancel"):
-            print("Cancelled.")
-            sys.exit(0)
+    if not confirm_input(prompt):
+        sys.exit(0)
+
 
 
 def extract_board_id(board_url):
@@ -296,7 +278,7 @@ def main():
 
         print()
         while True:
-            choice = input(f"Select a group [1-{len(groups)}]: ").strip()
+            choice = read_input(f"Select a group [1-{len(groups)}]: ").strip()
             if choice.isdigit() and 1 <= int(choice) <= len(groups):
                 selected = groups[int(choice) - 1]
                 break
@@ -317,8 +299,7 @@ def main():
                 print(f"  [{issue['key']}] [{issue['fields']['issuetype']['name']}] {issue['fields']['summary']}")
 
             confirm_or_cancel(
-                f"Update {STORIES_FILE.name} with these {len(tasks)} tasks? "
-                "Press Enter to continue or Esc to cancel"
+                f"Update {STORIES_FILE.name} with these {len(tasks)} tasks?"
             )
 
             keys = [i["key"] for i in tasks]
@@ -341,7 +322,7 @@ def main():
         print(f"    Components : {', '.join(story['components']) or 'N/A'}")
         print()
 
-    confirm_or_cancel("Stories look correct? Press Enter to continue with planning or Esc to cancel")
+    confirm_or_cancel("Stories look correct? Continue with planning")
 
     # ── Step 2: Build and display plan ────────────────────────────────────────
     print("\n=== Sub-task Plan ===\n")
@@ -361,7 +342,7 @@ def main():
                 print(f"    - {task['summary']}")
         print()
 
-    confirm_or_cancel("Proceed with creating sub-tasks? Press Enter to continue or Esc to cancel")
+    confirm_or_cancel("Proceed with creating sub-tasks?")
 
     # ── Step 3: Create sub-tasks ──────────────────────────────────────────────
     print("\n=== Creating Sub-tasks ===\n")

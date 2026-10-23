@@ -3,9 +3,9 @@
 import os
 import subprocess
 import sys
+
+from interactive_input import confirm_input, read_input
 import re
-import tty
-import termios
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
@@ -68,22 +68,9 @@ def is_develop_behind(repo_path, release_branch):
 
 
 def confirm_or_cancel(prompt):
-    """Print prompt and wait for Enter (continue) or Escape (cancel)."""
-    print(f"\n{prompt} (Press Enter to continue or Esc to cancel): ", end="", flush=True)
-    fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
-    try:
-        tty.setraw(fd)
-        while True:
-            ch = sys.stdin.read(1)
-            if ch in ("\r", "\n"):
-                print("\r\n", end="", flush=True)
-                return
-            if ch == "\x1b":
-                print("\r\nCancelled.\r\n", end="", flush=True)
-                sys.exit(0)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+    if not confirm_input(prompt):
+        sys.exit(0)
+
 
 
 def check_clean_workspace(repo_path):
@@ -200,7 +187,7 @@ def main():
                 f"  or leave blank to skip the behind-check: ",
                 end="",
             )
-            user_input = input().strip()
+            user_input = read_input().strip()
             latest_release = user_input if user_input else None
 
         repo_info[repo] = latest_release
@@ -251,7 +238,7 @@ def main():
     # Step 2: Ask for the new release branch name
     print()
     while True:
-        release_version = input(
+        release_version = read_input(
             "Enter the release version (format: YY.MM.xx, e.g. 26.04.20): "
         ).strip()
         if re.match(r"^\d{2}\.\d{2}\.\d+$", release_version):

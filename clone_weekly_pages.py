@@ -16,6 +16,8 @@ import os
 import re
 import subprocess
 import sys
+
+from interactive_input import confirm_input
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -296,11 +298,7 @@ def main():
     print(f"\n{'='*60}")
 
     # Phase 2: Ask for confirmation
-    print(f"\nPress Enter to confirm, or Ctrl+C to cancel: ", end="", flush=True)
-    try:
-        input()
-    except (KeyboardInterrupt, EOFError):
-        print("\nCancelled.")
+    if not confirm_input("Create these pages?"):
         sys.exit(0)
 
     # Phase 3: Create pages
