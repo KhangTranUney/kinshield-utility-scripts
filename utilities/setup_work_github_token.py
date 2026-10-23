@@ -2,8 +2,11 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
-from interactive_input import read_input
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from helper.interactive_input import read_input
+
 
 
 ZSHRC_PATH = os.path.expanduser("~/.zshrc")

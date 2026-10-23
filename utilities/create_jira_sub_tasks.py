@@ -2,13 +2,15 @@
 
 import sys
 
-from interactive_input import confirm_input, read_input
 import re
 import requests
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.parent
-SCRIPTS_DIR = Path(__file__).parent
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from helper.interactive_input import confirm_input, read_input
+
+SCRIPTS_DIR = Path(__file__).resolve().parent
+ENV_FILE = SCRIPTS_DIR.parent / ".env"
 STORIES_FILE = SCRIPTS_DIR / "create_jira_sub_tasks_stories.md"
 
 TEAM_FIELD = "customfield_10361"
@@ -42,7 +44,7 @@ def _check_response(response, context=""):
 
 
 def load_env():
-    env_path = SCRIPTS_DIR / ".env"
+    env_path = ENV_FILE
     if not env_path.exists():
         print(f"[ERROR] .env file not found at {env_path}")
         sys.exit(1)

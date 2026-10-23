@@ -26,7 +26,7 @@ from google.oauth2 import service_account
 # Reports record the requested work and its result. They are ignored by Git
 # because they are generated each time this module runs.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from interactive_input import confirm_input
+from helper.interactive_input import confirm_input
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent

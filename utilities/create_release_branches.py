@@ -4,12 +4,14 @@ import os
 import subprocess
 import sys
 
-from interactive_input import confirm_input, read_input
 import re
 from pathlib import Path
 
-SCRIPT_DIR = Path(__file__).parent
-BASE_DIR = SCRIPT_DIR.parent
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from helper.interactive_input import confirm_input, read_input
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+BASE_DIR = SCRIPT_DIR.parent.parent
 
 REPOS = [
     "kinshield-android",

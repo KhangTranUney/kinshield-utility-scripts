@@ -3,12 +3,12 @@
 Clone Confluence weekly template pages for the current week.
 
 Usage:
-    # Create a .env file in the same directory as this script:
+    # Create scripts/.env (one directory above this script):
     CONFLUENCE_EMAIL=your-email@example.com
     CONFLUENCE_TOKEN=your-api-token
 
     # Run:
-    python3 clone_weekly_pages.py
+    python3 utilities/clone_weekly_pages.py
 """
 
 import json
@@ -17,9 +17,11 @@ import re
 import subprocess
 import sys
 
-from interactive_input import confirm_input
 from datetime import datetime, timedelta
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from helper.interactive_input import confirm_input
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -41,8 +43,8 @@ TEMPLATE_PAGES = [
 # ---------------------------------------------------------------------------
 
 def load_env():
-    """Load variables from .env file in the same directory as this script."""
-    env_path = Path(__file__).resolve().parent / ".env"
+    """Load variables from the shared scripts/.env file."""
+    env_path = Path(__file__).resolve().parents[1] / ".env"
     if env_path.exists():
         with open(env_path) as f:
             for line in f:
@@ -58,7 +60,7 @@ def get_credentials():
     email = os.environ.get("CONFLUENCE_EMAIL")
     token = os.environ.get("CONFLUENCE_TOKEN")
     if not email or not token:
-        env_path = Path(__file__).resolve().parent / ".env"
+        env_path = Path(__file__).resolve().parents[1] / ".env"
         print("ERROR: Missing credentials.\n")
         print(f"Create a .env file at: {env_path}\n")
         print("With the following content:")

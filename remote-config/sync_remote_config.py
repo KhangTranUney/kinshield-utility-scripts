@@ -29,7 +29,7 @@ import publish_remote_config as publisher
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from interactive_input import confirm_input
+from helper.interactive_input import confirm_input
 
 
 REMOTE_TYPES = {value: key for key, value in publisher.DATA_TYPES.items()}
