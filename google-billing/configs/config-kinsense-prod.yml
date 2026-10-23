@@ -5,14 +5,14 @@ family 1:
         subscription name: KinSense Care 01 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.1
+                ios id: com.kinsense.family.care.monthly.1
                 name: KinSense Care Monthly 01
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.care.annual.1
+                ios id: com.kinsense.family.care.annual.1
                 name: KinSense Care Annual 01
                 price: 59.99
                 android id: com-kinsense-family-care-annual-1 # android only
@@ -23,14 +23,14 @@ family 1:
         subscription name: KinSense Protect 01 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.1
+                ios id: com.kinsense.family.protect.monthly.1
                 name: KinSense Protect Monthly 01
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.protect.annual.1
+                ios id: com.kinsense.family.protect.annual.1
                 name: KinSense Protect Annual 01
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-1 # android only
@@ -42,14 +42,14 @@ family 2:
         subscription name: KinSense Care 02 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.2
+                ios id: com.kinsense.family.care.monthly.2
                 name: KinSense Care Monthly 02
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.care.annual.2
+                ios id: com.kinsense.family.care.annual.2
                 name: KinSense Care Annual 02
                 price: 59.99
                 android id: com-kinsense-family-care-annual-2 # android only
@@ -60,14 +60,14 @@ family 2:
         subscription name: KinSense Protect 02 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.2
+                ios id: com.kinsense.family.protect.monthly.2
                 name: KinSense Protect Monthly 02
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.protect.annual.2
+                ios id: com.kinsense.family.protect.annual.2
                 name: KinSense Protect Annual 02
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-2 # android only
@@ -79,14 +79,14 @@ family 3:
         subscription name: KinSense Care 03 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.3
+                ios id: com.kinsense.family.care.monthly.3
                 name: KinSense Care Monthly 03
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-3 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.care.annual.3
+                ios id: com.kinsense.family.care.annual.3
                 name: KinSense Care Annual 03
                 price: 59.99
                 android id: com-kinsense-family-care-annual-3 # android only
@@ -97,14 +97,14 @@ family 3:
         subscription name: KinSense Protect 03 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.3
+                ios id: com.kinsense.family.protect.monthly.3
                 name: KinSense Protect Monthly 03
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-3 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.protect.annual.3
+                ios id: com.kinsense.family.protect.annual.3
                 name: KinSense Protect Annual 03
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-3 # android only
@@ -116,14 +116,14 @@ family 4:
         subscription name: KinSense Care 04 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.4
+                ios id: com.kinsense.family.care.monthly.4
                 name: KinSense Care Monthly 04
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-4 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.care.annual.4
+                ios id: com.kinsense.family.care.annual.4
                 name: KinSense Care Annual 04
                 price: 59.99
                 android id: com-kinsense-family-care-annual-4 # android only
@@ -134,14 +134,14 @@ family 4:
         subscription name: KinSense Protect 04   # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.4
+                ios id: com.kinsense.family.protect.monthly.4
                 name: KinSense Protect Monthly 04
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-4 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.protect.annual.4
+                ios id: com.kinsense.family.protect.annual.4
                 name: KinSense Protect Annual 04
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-4 # android only
@@ -153,14 +153,14 @@ family 6:
         subscription name: KinSense Care 06 # android only
         plan:
             monthly:
-                id: com.kinsense.family.care.monthly.6
+                ios id: com.kinsense.family.care.monthly.6
                 name: KinSense Care Monthly 06
                 price: 5.99
                 android id: com-kinsense-family-care-monthly-6 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.care.annual.6
+                ios id: com.kinsense.family.care.annual.6
                 name: KinSense Care Annual 06
                 price: 59.99
                 android id: com-kinsense-family-care-annual-6 # android only
@@ -171,14 +171,14 @@ family 6:
         subscription name: KinSense Protect 06 # android only
         plan:
             monthly:
-                id: com.kinsense.family.protect.monthly.6
+                ios id: com.kinsense.family.protect.monthly.6
                 name: KinSense Protect Monthly 06
                 price: 9.99
                 android id: com-kinsense-family-protect-monthly-6 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.kinsense.family.protect.annual.6
+                ios id: com.kinsense.family.protect.annual.6
                 name: KinSense Protect Annual 06
                 price: 99.99
                 android id: com-kinsense-family-protect-annual-6 # android only

@@ -1,39 +1,39 @@
-package name: com.strazee.qa
+package name: com.strazee
 family 1:
     pro:
-        subscription id: com.strazee.qa.family.pro.1 # android only
+        subscription id: com.strazee.family.pro.1 # android only
         subscription name: Strazee Pro 1 # android only
         plan:
             monthly:
-                id: com.strazee.qa.family.pro.monthly.1
+                ios id: com.strazee.family.pro.monthly.1
                 name: Strazee Pro Monthly 1
                 price: 5.99
-                android id: com-strazee-qa-family-pro-monthly-1 # android only
+                android id: com-strazee-family-pro-monthly-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.strazee.qa.family.pro.annual.1
+                ios id: com.strazee.family.pro.annual.1
                 name: Strazee Pro Annual 1
                 price: 59.99
-                android id: com-strazee-qa-family-pro-annual-1 # android only
+                android id: com-strazee-family-pro-annual-1 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
 family 2:
     pro:
-        subscription id: com.strazee.qa.family.pro.2 # android only
+        subscription id: com.strazee.family.pro.2 # android only
         subscription name: Strazee Pro 2 # android only
         plan:
             monthly:
-                id: com.strazee.qa.family.pro.monthly.2
+                ios id: com.strazee.family.pro.monthly.2
                 name: Strazee Pro Monthly 2
                 price: 6.99
-                android id: com-strazee-qa-family-pro-monthly-2 # android only
+                android id: com-strazee-family-pro-monthly-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             annual:
-                id: com.strazee.qa.family.pro.annual.2
+                ios id: com.strazee.family.pro.annual.2
                 name: Strazee Pro Annual 2
                 price: 69.99
-                android id: com-strazee-qa-family-pro-annual-2 # android only
+                android id: com-strazee-family-pro-annual-2 # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false

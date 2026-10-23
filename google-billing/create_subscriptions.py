@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Create Google Play subscriptions for Pyffe, Strazee, KinSense, or KinShield.
 
-Choose the product and environment interactively. The existing QA Android
+Choose the product and environment interactively. The QA
 configuration is used for the non-production environment.
 """
 
@@ -34,36 +34,36 @@ PROJECTS = {
     "1": (
         "Pyffe",
         {
-            "prod": (SCRIPT_DIR / "configs" / "payment-config-pyffe-prod-android.yml", SCRIPT_DIR / "credentials" / "service-account-pyffe.json"),
-            "non-prod": (SCRIPT_DIR / "configs" / "payment-config-pyffe-qa-android.yml", SCRIPT_DIR / "credentials" / "service-account-pyffe.json"),
+            "prod": (SCRIPT_DIR / "configs" / "config-pyffe-prod.yml", SCRIPT_DIR / "credentials" / "service-account-pyffe.json"),
+            "non-prod": (SCRIPT_DIR / "configs" / "config-pyffe-qa.yml", SCRIPT_DIR / "credentials" / "service-account-pyffe.json"),
         },
     ),
     "2": (
         "Strazee",
         {
-            "prod": (SCRIPT_DIR / "configs" / "payment-config-strazee-prod-android.yml", SCRIPT_DIR / "credentials" / "service-account-strazee.json"),
-            "non-prod": (SCRIPT_DIR / "configs" / "payment-config-strazee-qa-android.yml", SCRIPT_DIR / "credentials" / "service-account-strazee.json"),
+            "prod": (SCRIPT_DIR / "configs" / "config-strazee-prod.yml", SCRIPT_DIR / "credentials" / "service-account-strazee.json"),
+            "non-prod": (SCRIPT_DIR / "configs" / "config-strazee-qa.yml", SCRIPT_DIR / "credentials" / "service-account-strazee.json"),
         },
     ),
     "3": (
         "KinSense",
         {
-            "prod": (SCRIPT_DIR / "configs" / "payment-config-kinsense-prod-android.yml", SCRIPT_DIR / "credentials" / "service-account-kinsense.json"),
-            "non-prod": (SCRIPT_DIR / "configs" / "payment-config-kinsense-qa-android.yml", SCRIPT_DIR / "credentials" / "service-account-kinsense.json"),
+            "prod": (SCRIPT_DIR / "configs" / "config-kinsense-prod.yml", SCRIPT_DIR / "credentials" / "service-account-kinsense.json"),
+            "non-prod": (SCRIPT_DIR / "configs" / "config-kinsense-qa.yml", SCRIPT_DIR / "credentials" / "service-account-kinsense.json"),
         },
     ),
     "4": (
         "KinShield",
         {
-            "prod": (SCRIPT_DIR / "configs" / "payment-config-kinshield-prod-android.yml", SCRIPT_DIR / "credentials" / "service-account-kinshield.json"),
-            "non-prod": (SCRIPT_DIR / "configs" / "payment-config-kinshield-qa-android.yml", SCRIPT_DIR / "credentials" / "service-account-kinshield.json"),
+            "prod": (SCRIPT_DIR / "configs" / "config-kinshield-prod.yml", SCRIPT_DIR / "credentials" / "service-account-kinshield.json"),
+            "non-prod": (SCRIPT_DIR / "configs" / "config-kinshield-qa.yml", SCRIPT_DIR / "credentials" / "service-account-kinshield.json"),
         },
     ),
 }
 
 
 class ConfigError(ValueError):
-    """Raised when a payment-config file cannot safely be used."""
+    """Raised when a billing configuration file cannot safely be used."""
 
 
 def parse_args() -> argparse.Namespace:

@@ -1,38 +1,38 @@
-package name: com.kinshield.qa
+package name: com.pyffe.qa
 account pro:
     standard:
-        subscription id: qa.kinshield.pro.standard # android only
+        subscription id: com.pyffe.qa.standard # android only
         subscription name: Standard Plan # android only
         plan:
             monthly:
-                id: qa.kinshield.pro.standard.monthly
+                ios id: com.pyffe.qa.standard.monthly
                 name: Standard Monthly
                 price: 7.99
-                android id: qa-kinshield-pro-standard-monthly # android only
+                android id: com-pyffe-qa-standard-monthly # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             yearly:
-                id: qa.kinshield.pro.standard.annual
+                ios id: com.pyffe.qa.standard.annual
                 name: Standard Annual
                 price: 59.99
-                android id: qa-kinshield-pro-standard-annual # android only
+                android id: com-pyffe-qa-standard-annual # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
     premium:
-        subscription id: qa.kinshield.pro.premium # android only
+        subscription id: com.pyffe.qa.premium # android only
         subscription name: Premium Plan # android only
         plan:
             monthly:
-                id: qa.kinshield.pro.premium.monthly
+                ios id: com.pyffe.qa.premium.monthly
                 name: Premium Monthly
                 price: 9.99
-                android id: qa-kinshield-pro-premium-monthly # android only
+                android id: com-pyffe-qa-premium-monthly # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
             yearly:
-                id: qa.kinshield.pro.premium.annual
+                ios id: com.pyffe.qa.premium.annual
                 name: Premium Annual
                 price: 99.99
-                android id: qa-kinshield-pro-premium-annual # android only
+                android id: com-pyffe-qa-premium-annual # android only
                 android charge: immediately # android only | enum: immediately, at next billing date
                 android resubscribe: false # android only | enum: true, false
