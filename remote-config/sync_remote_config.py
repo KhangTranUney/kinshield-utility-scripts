@@ -32,6 +32,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from helper.interactive_input import confirm_input
 
 
+# Sync direction: Firebase -> local YAML; this script does not publish to Firebase.
+# Reuse menu, authentication, and manifest validation from publish_remote_config.
 REMOTE_TYPES = {value: key for key, value in publisher.DATA_TYPES.items()}
 
 
@@ -53,6 +55,7 @@ def load_document(path: Path) -> dict[str, Any]:
 def as_local_value(value: str, remote_type: str) -> Any:
     """Convert a Firebase string value to the manifest's native YAML value."""
 
+    # Convert booleans/numbers to native YAML types; STRING and JSON remain strings.
     data_type = REMOTE_TYPES.get(remote_type, "string")
     if data_type == "boolean":
         return value.lower() == "true"
@@ -66,6 +69,7 @@ def as_local_value(value: str, remote_type: str) -> Any:
 
 
 def condition_map(template: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    # Map Firebase conditions by name, renaming tagColor to tag_color.
     result: dict[str, dict[str, Any]] = {}
     for condition in template.get("conditions", []):
         if not isinstance(condition, dict) or not isinstance(condition.get("name"), str):
@@ -136,6 +140,7 @@ def display_changes(
     if not isinstance(remote_params, dict):
         raise publisher.ConfigError("The current Firebase template has an invalid parameters field.")
 
+    # Preview changes on a copy; write the file only after confirmation in main().
     updated = deepcopy(document)
     changes = False
 
@@ -153,6 +158,9 @@ def display_changes(
     local_only = sorted(set(local_params) - set(remote_params))
     parameter_changes_count = 0
 
+    # For shared keys, sync descriptions and conditional values; only report differences in
+    # local data_type/default values without overwriting them. Switching to conditional values
+    # removes value; switching back reuses value or takes the remote default.
     for key in sorted(set(local_params) & set(remote_params)):
         local_definition = local_params[key]
         remote_definition = remote_params[key]
@@ -211,6 +219,7 @@ def display_changes(
             parameter_changes_count += 1
             changes = True
 
+    # For remote-only keys, add the complete definition to YAML with deleted=False.
     for key in remote_only:
         remote_definition = remote_params[key]
         if not isinstance(remote_definition, dict):
@@ -238,6 +247,7 @@ def display_changes(
             updated_definition["value"] = remote_default_value(remote_definition)
         updated["params"][key] = updated_definition
 
+    # For local-only keys, retain data and set deleted=True instead of removing the entry.
     for key in local_only:
         local_definition = local_params[key]
         print(f"\n{key}")
@@ -264,6 +274,9 @@ def display_changes(
 
 
 def write_document(path: Path, document: dict[str, Any]) -> None:
+    # Normalize field order, indentation, and descriptions. safe_dump rewrites YAML, so
+    # existing config comments are lost. Write to a temporary file in the same directory
+    # and replace the destination to avoid leaving it partially written if content writing fails.
     document = ordered_parameter_fields(document)
     content = yaml.safe_dump(
         document,
@@ -363,6 +376,7 @@ def main() -> int:
     try:
         environment, config_path, service_account_path = publisher.choose_environment()
         print(f"Selected {environment}.")
+        # Read/validate local config before authentication and fetching remote; preview, then confirm writing.
         document = load_document(config_path)
         publisher.load_manifest(config_path)
         project_id = str(document["project_id"])

@@ -14,6 +14,7 @@ class InputCancelled(SystemExit):
 
 def read_input(prompt="", *, hidden=False):
     """Read an editable line, restoring terminal settings on every exit path."""
+    # Without an interactive terminal, use input/getpass; check Escape after line submission.
     if not sys.stdin.isatty():
         value = getpass.getpass(prompt) if hidden else input(prompt)
         if "\x1b" in value:
@@ -21,6 +22,8 @@ def read_input(prompt="", *, hidden=False):
             raise InputCancelled(0)
         return value
 
+    # Save terminal settings before enabling raw mode to receive each key immediately.
+    # The decoder combines UTF-8 bytes into characters to support Unicode input.
     fd = sys.stdin.fileno()
     settings = termios.tcgetattr(fd)
     decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
@@ -30,6 +33,7 @@ def read_input(prompt="", *, hidden=False):
         print(prompt, end="", flush=True)
         while True:
             key = os.read(fd, 1)
+            # Escape cancels, Ctrl-C interrupts, and Ctrl-D or exhausted input raises EOF.
             if key == b"\x1b":
                 raise InputCancelled(0)
             if key == b"\x03":
@@ -54,6 +58,7 @@ def read_input(prompt="", *, hidden=False):
         print("\r\nCancelled.", end="", flush=True)
         raise
     finally:
+        # Always restore the terminal, including on cancellation, EOF, or exceptions.
         termios.tcsetattr(fd, termios.TCSADRAIN, settings)
         print()
 

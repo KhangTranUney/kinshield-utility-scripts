@@ -23,13 +23,13 @@ import requests
 from google.oauth2 import service_account
 
 
-# Reports record the requested work and its result. They are ignored by Git
-# because they are generated each time this module runs.
+# Add the scripts root to import the shared input helper.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from helper.interactive_input import confirm_input
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+# JSON reports store the plan and per-subscription results, including partial failures.
 REPORT_DIR = SCRIPT_DIR / "reports"
 # Google Play Developer API endpoint and OAuth permission used for all requests.
 BASE_URL = "https://androidpublisher.googleapis.com/androidpublisher/v3"
@@ -275,6 +275,8 @@ def post_subscriptions(
     except Exception as exc:
         print(f"Setup failed: {exc}", file=sys.stderr)
         return 1
+    # Process subscriptions independently: skip existing IDs, record failures, and continue.
+    # Existing subscriptions are unchanged; base plans stay DRAFT; successful creates are not rolled back.
     for subscription in subscriptions:
         product_id = subscription["productId"]
         try:
@@ -291,4 +293,5 @@ def post_subscriptions(
             print(f"FAILED {product_id}: {exc}", file=sys.stderr)
     print(f"Summary: created={len(report['created'])}, skipped={len(report['skippedExisting'])}, failed={len(report['failures'])}")
     print(f"Report: {write_report(report)}")
+    # Return a failure exit code if any product failed; the report also retains successful results.
     return 1 if report["failures"] else 0

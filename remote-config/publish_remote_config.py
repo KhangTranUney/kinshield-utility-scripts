@@ -21,6 +21,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from helper.interactive_input import confirm_input, read_input
 
 
+# Flow: select project/environment -> read YAML -> fetch the template and ETag
+# -> merge and preview -> Firebase validate_only -> confirm -> publish with the original ETag.
 SCRIPT_DIR = Path(__file__).resolve().parent
 API_URL = "https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/remoteConfig"
 SCOPES = ["https://www.googleapis.com/auth/firebase.remoteconfig"]
@@ -96,6 +98,8 @@ def choose_environment() -> tuple[str, Path, Path]:
 
 
 def load_manifest(path: Path) -> tuple[str, dict[str, dict[str, Any]]]:
+    # Each parameter requires exactly one of value/condition_value unless deleted is true.
+    # condition_value references condition names; this script does not create/edit conditions from YAML.
     try:
         document = yaml.safe_load(path.read_text())
     except FileNotFoundError as exc:
@@ -181,6 +185,7 @@ def load_manifest(path: Path) -> tuple[str, dict[str, dict[str, Any]]]:
 def parameter_value(key: str, definition: dict[str, Any]) -> dict[str, Any]:
     data_type = definition["data_type"]
 
+    # Firebase values are strings, including booleans/numbers; JSON must be a valid JSON string.
     def encode(value: Any, label: str) -> str:
         if data_type == "string":
             if not isinstance(value, str):
@@ -219,6 +224,8 @@ def parameter_value(key: str, definition: dict[str, Any]) -> dict[str, Any]:
 def merge_template(
     template: dict[str, Any], manifest: dict[str, dict[str, Any]]
 ) -> tuple[dict[str, Any], list[tuple[str, str, dict[str, Any] | None, dict[str, Any] | None]]]:
+    # Mutate the fetched template in place, changing only keys listed in the manifest.
+    # deleted: true removes an existing key; otherwise, missing keys are added.
     parameters = template.setdefault("parameters", {})
     if not isinstance(parameters, dict):
         raise ConfigError("The current Firebase template has an invalid parameters field.")
@@ -251,7 +258,9 @@ def merge_template(
             )
         ):
             continue
-        # Keep descriptions, conditional values, and other existing metadata.
+        # Preserve metadata and keep the current description when YAML omits it.
+        # value replaces the default and removes old conditionalValues; condition_value replaces
+        # all conditionalValues while keeping the existing defaultValue.
         updated = dict(current)
         updated["valueType"] = desired["valueType"]
         if "description" in desired:
@@ -305,6 +314,7 @@ def response_error(response: requests.Response) -> str:
 
 
 def get_template(session: google.auth.transport.requests.AuthorizedSession, project_id: str) -> tuple[dict[str, Any], str]:
+    # The ETag ties publishing to the fetched version to prevent overwriting concurrent changes.
     response = session.get(API_URL.format(project_id=project_id), headers={"Accept-Encoding": "gzip"}, timeout=TIMEOUT_SECONDS)
     if not response.ok:
         raise ConfigError(f"Could not fetch Firebase Remote Config ({response.status_code}):\n{response_error(response)}")
@@ -327,6 +337,7 @@ def put_template(
     etag: str,
     validate_only: bool,
 ) -> requests.Response:
+    # validate_only checks on the server without publishing; both PUT requests use If-Match.
     return session.put(
         API_URL.format(project_id=project_id),
         params={"validate_only": "true"} if validate_only else None,
@@ -357,6 +368,7 @@ def main() -> int:
             return 0
         display_changes(changes)
 
+        # No changes returns above; otherwise validate before asking for publishing confirmation.
         validation = put_template(session, project_id, merged_template, etag, validate_only=True)
         if not validation.ok:
             raise ConfigError(f"Validation failed ({validation.status_code}):\n{response_error(validation)}")

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Flow: enter a hidden token -> update ~/.zshrc -> verify its contents -> read the token back.
+# Save the token as an export for new shells; no GitHub request validates the token.
+
 import os
 import subprocess
 import sys
@@ -30,6 +33,8 @@ def write_to_zshrc(token: str) -> None:
     except FileNotFoundError:
         lines = []
 
+    # Replace the first line starting exactly with export WORK_GITHUB_TOKEN=;
+    # otherwise append it, preserving all other configuration lines.
     new_line = f'{EXPORT_LINE}"{token}"\n'
     updated = False
     for i, line in enumerate(lines):
@@ -51,8 +56,9 @@ def write_to_zshrc(token: str) -> None:
 
 
 def source_zshrc() -> None:
-    # Only export the single variable into the current process environment,
-    # avoiding a full zsh startup (which loads plugins and is slow).
+    # Run a child zsh, source ~/.zshrc, and copy the token into Python's os.environ.
+    # The parent shell is unchanged and needs to source the file itself.
+    # Sourcing also executes other commands in ~/.zshrc.
     result = subprocess.run(
         ["zsh", "-c", f"source {ZSHRC_PATH} > /dev/null 2>&1; echo ${TOKEN_KEY}"],
         capture_output=True,
@@ -69,6 +75,7 @@ def source_zshrc() -> None:
 
 
 def verify_written(token: str) -> None:
+    # Verify only that the export string was written, not the token permissions or expiry.
     with open(ZSHRC_PATH, "r") as f:
         content = f.read()
     if f'{EXPORT_LINE}"{token}"' in content:

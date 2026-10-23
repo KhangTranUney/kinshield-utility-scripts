@@ -11,6 +11,10 @@ Usage:
     python3 utilities/clone_weekly_pages.py
 """
 
+# The flow uses the PREVIOUS week in local time: fetch templates -> update titles
+# -> preview and confirm -> create missing pages -> print/copy the report text.
+# Storage content and parent pages come from templates; no Teams message is sent.
+
 import json
 import os
 import re
@@ -52,6 +56,7 @@ def load_env():
                 if not line or line.startswith("#"):
                     continue
                 key, _, value = line.partition("=")
+                # Keep existing environment variables; fill only missing values from .env.
                 os.environ.setdefault(key.strip(), value.strip())
 
 
@@ -185,6 +190,8 @@ def fetch_page_info(page_id, email, token, week_num, monday, friday):
         email, token
     )
 
+    # Copy the body unchanged; update only the title using the week supplied by main().
+    # The final ancestor is the direct parent, placing the new page beside its template.
     original_title = data["title"]
     space_key = data["space"]["key"]
     body_html = data["body"]["storage"]["value"]
@@ -209,7 +216,7 @@ def create_page(info, email, token):
     space_key = info["space_key"]
     new_title = info["new_title"]
 
-    # Check for duplicates
+    # Check duplicates by space and title; reuse existing page URLs without overwriting pages.
     existing_url = find_existing_page(space_key, new_title, email, token)
     if existing_url:
         print(f"  [{space_key}] SKIP — already exists: {existing_url}")
@@ -310,6 +317,7 @@ def main():
         url = create_page(info, email, token)
         results.append((info["label"], url))
 
+    # Results with URLs include both newly created pages and reused existing pages.
     created = [(l, u) for l, u in results if u]
     print(f"\n{'='*60}")
     print(f"Done. {len(created)}/{len(pages)} pages created.")

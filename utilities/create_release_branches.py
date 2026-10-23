@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# Flow: check repositories -> checkout/pull develop -> compare the latest release
+# -> preview and confirm -> enter a version -> create branches, bump versions, commit, and push.
+# Repositories are located beside scripts; this script changes local checkouts and Git data.
+
 import os
 import subprocess
 import sys
@@ -44,6 +48,7 @@ def get_latest_release_branch(repo_path):
         if line.strip()
     ]
 
+    # Sort by numeric version components rather than commit dates or lexical order.
     release_pattern = re.compile(r"^release/v(\d{2})\.(\d{2})\.(\d+)$")
     versioned = []
     for b in branches:
@@ -65,6 +70,7 @@ def is_develop_behind(repo_path, release_branch):
         ["git", "rev-list", "--count", f"origin/develop..{release_ref}"],
         cwd=repo_path,
     )
+    # Count release commits absent from develop; diverged branches can also return True.
     ahead = int(result.stdout.strip())
     return ahead > 0
 
@@ -104,6 +110,7 @@ def bump_version_properties(repo_path, version_name):
     if not match:
         raise RuntimeError(f"VERSION_CODE not found in {props_path}")
     current_code = int(match.group(1))
+    # Always advance to the next multiple of 100: 123 -> 200; 200 -> 300.
     new_code = (current_code // 100 + 1) * 100
     content = re.sub(r"(?m)^VERSION_CODE\s*=\s*\d+$", f"VERSION_CODE={new_code}", content)
 
@@ -135,6 +142,8 @@ def bump_ci_config(repo_path, branch_name):
 
 
 def create_and_push_branch(repo, repo_path, branch_name, release_version):
+    # Skip branches already on origin; new branches start from the pulled develop branch.
+    # Apps: update version and CI; core-features: update VERSION; features-version: branch only.
     result = run(["git", "branch", "-r", "--list", f"origin/{branch_name}"], cwd=repo_path)
     if result.stdout.strip():
         print(f"  Branch '{branch_name}' already exists on remote, skipping.")
@@ -152,6 +161,7 @@ def create_and_push_branch(repo, repo_path, branch_name, release_version):
         run(["git", "add", "gradle.properties"], cwd=repo_path)
         run(["git", "commit", "-m", f"[Init Release] {release_version}"], cwd=repo_path)
 
+    # main() asks for confirmation before creating/pushing; failures retain local branches and commits.
     run(["git", "push", "-u", "origin", branch_name], cwd=repo_path)
 
 
@@ -235,6 +245,7 @@ def main():
     if not all_ok:
         print("\nOne or more repos have develop BEHIND the latest release branch.")
 
+    # Missing release commits only trigger a warning; users can confirm to proceed anyway.
     confirm_or_cancel("Proceed with creating the release branch?")
 
     # Step 2: Ask for the new release branch name
@@ -251,6 +262,7 @@ def main():
 
     # Step 3: Create and push release branch for each repo
     print()
+    # Continue after per-repository failures, report them at the end, and retain completed work.
     errors = []
     for repo in REPOS:
         path = repo_paths[repo]

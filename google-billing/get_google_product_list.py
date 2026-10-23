@@ -26,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from helper.interactive_input import InputCancelled, read_input
 
 
+# Flow: select product/environment -> authenticate the service account -> fetch all
+# subscription pages -> write full JSON and print a summary. Google Play access is read-only.
 SCRIPT_DIR = Path(__file__).resolve().parent
 BASE_URL = "https://androidpublisher.googleapis.com/androidpublisher/v3"
 SCOPES = ["https://www.googleapis.com/auth/androidpublisher"]
@@ -103,6 +105,7 @@ def prompt_choice(prompt: str, choices: dict[str, tuple[str, str]]) -> str:
 
 
 def select_target() -> Target:
+    # Resolve the selected prod/QA package and its credentials from PROJECTS.
     product_key = prompt_choice(
         "Choose the Google Play product:",
         {"1": ("pyffe", "Pyffe"), "2": ("strazee", "Strazee"), "3": ("kinsense", "KinSense"), "4": ("kinshield", "KinShield")},
@@ -176,6 +179,7 @@ def list_page_paginated(
     """List a current monetization resource using pageSize/pageToken."""
     items: list[dict[str, Any]] = []
     page_token: str | None = None
+    # Accumulate results until nextPageToken is absent; any page failure aborts the export.
     while True:
         params: dict[str, str | int] = {"pageSize": PAGE_SIZE}
         if page_token:
@@ -191,6 +195,7 @@ def list_page_paginated(
 
 
 def title_from_listings(product: dict[str, Any]) -> str:
+    # Prefer en-US, then the first listing; support both list and dictionary schemas.
     listings = product.get("listings")
     if isinstance(listings, list):
         preferred = next((item for item in listings if item.get("languageCode") == "en-US"), None)
@@ -247,6 +252,7 @@ def main() -> int:
         target = select_target()
         output_path = args.output or default_output(target)
         catalog, _ = fetch_catalog(target)
+        # Write only after all pages are fetched; --output overwrites an existing destination.
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     except CatalogCancelled:

@@ -19,6 +19,9 @@ import yaml
 from _post_subscriptions import InputError, absolute_file_path, post_subscriptions, usd_money
 
 
+# Flow: select product/environment -> read and validate YAML -> normalize payloads
+# -> delegate preview, confirmation, and DRAFT subscription creation to _post_subscriptions.
+# --dry-run still checks config/credential file existence but makes no Google Play requests.
 PRODUCT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_.]{0,39}$")
 BASE_PLAN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}$")
 PACKAGE_NAME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+$")
@@ -34,6 +37,7 @@ from helper.interactive_input import read_input
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+# non-prod uses QA config; each product shares one service-account file across both environments.
 PROJECTS = {
     "1": (
         "Pyffe",
@@ -117,10 +121,12 @@ def parse_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
     if not isinstance(document, dict) or not document:
         raise ConfigError("The YAML root must be a non-empty mapping.")
 
+    # Extract the package name; remaining entries must follow group -> tier -> subscription -> plan.
     package_name = document.pop("package name", None)
     if not isinstance(package_name, str) or not PACKAGE_NAME_RE.fullmatch(package_name):
         raise ConfigError(f"package name must be a valid Android package name: {package_name!r}")
 
+    # Check IDs for duplicates across the entire file before moving to API requests.
     subscriptions: list[dict[str, Any]] = []
     product_ids: set[str] = set()
     base_plan_ids: set[str] = set()
@@ -156,6 +162,7 @@ def parse_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
                 if base_plan_id in base_plan_ids:
                     raise ConfigError(f"Duplicate android id: {base_plan_id}")
                 base_plan_ids.add(base_plan_id)
+                # Decimal preserves USD precision; the Money API supports up to nine decimal places.
                 try:
                     price = Decimal(str(plan.get("price")))
                 except (InvalidOperation, ValueError) as exc:
@@ -169,6 +176,7 @@ def parse_yaml(path: Path) -> tuple[str, list[dict[str, Any]]]:
                 resubscribe = plan.get("android resubscribe")
                 if not isinstance(resubscribe, bool):
                     raise ConfigError(f"{plan_context}: android resubscribe must be true or false.")
+                # Map YAML fields to internal fields; the posting module obtains regional prices later.
                 base_plans.append(
                     {
                         "basePlanId": base_plan_id,
