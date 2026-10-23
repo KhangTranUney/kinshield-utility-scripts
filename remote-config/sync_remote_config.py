@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Synchronize Firebase Remote Config metadata into a local YAML manifest.
+"""Synchronize Firebase Remote Config into a local YAML manifest.
 
 The script fetches the current Firebase template, shows the differences, and
 asks before updating the selected YAML file. Parameters use exactly one of
-``value`` or ``condition_value``. Existing local values and data types are
-preserved where possible; descriptions, conditions, conditional values, and
-parameters that exist only in Firebase are synchronized. Parameters that exist
+``value`` or ``condition_value``. Remote values, data types, descriptions,
+conditions, conditional values, and parameters that exist only in Firebase
+are synchronized. Parameters that exist
 only locally are marked ``deleted: true``. Missing descriptions are written as
 an empty string.
 """
@@ -158,9 +158,8 @@ def display_changes(
     local_only = sorted(set(local_params) - set(remote_params))
     parameter_changes_count = 0
 
-    # For shared keys, sync descriptions and conditional values; only report differences in
-    # local data_type/default values without overwriting them. Switching to conditional values
-    # removes value; switching back reuses value or takes the remote default.
+    # For shared keys, remote definitions are authoritative. The manifest uses
+    # either value or condition_value, so remove the other field when switching.
     for key in sorted(set(local_params) & set(remote_params)):
         local_definition = local_params[key]
         remote_definition = remote_params[key]
@@ -187,26 +186,34 @@ def display_changes(
             )
 
         local_type = local_definition.get("data_type")
-        remote_type = REMOTE_TYPES.get(remote_definition.get("valueType"))
+        remote_type = REMOTE_TYPES.get(remote_definition.get("valueType"), "string")
         if local_type != remote_type:
-            parameter_changes.append(f"type differs: local {local_type!r}, remote {remote_type!r} (not applied)")
-        if not local_definition.get("deleted") and "value" in local_definition:
+            parameter_changes.append(f"data_type: {local_type!r} -> {remote_type!r}")
+        if local_definition.get("deleted"):
+            parameter_changes.append("deleted: true -> false")
+        if not remote_conditions_for_parameter:
             remote_value = remote_default_value(remote_definition)
             local_value = local_definition.get("value")
-            if local_value != remote_value:
+            if (
+                "value" not in local_definition
+                or type(local_value) is not type(remote_value)
+                or local_value != remote_value
+            ):
                 parameter_changes.append(
-                    "value differs: "
-                    f"local {local_value_summary(key, local_value)}, "
-                    f"remote {remote_value_summary(key, remote_definition)} (not applied)"
+                    "value: "
+                    f"{local_value_summary(key, local_value)} -> "
+                    f"{local_value_summary(key, remote_value)}"
                 )
 
         if parameter_changes:
             print(f"\n{key}")
             for change in parameter_changes:
                 print(f"  - {change}")
-        if any("not applied" not in change for change in parameter_changes):
+        if parameter_changes:
             updated_definition = updated["params"][key]
             updated_definition["description"] = remote_description
+            updated_definition["data_type"] = remote_type
+            updated_definition["deleted"] = False
             if remote_conditions_for_parameter:
                 updated_definition.pop("value", None)
                 updated_definition["condition_value"] = condition_value_list(
@@ -214,8 +221,7 @@ def display_changes(
                 )
             else:
                 updated_definition.pop("condition_value", None)
-                if "value" not in updated_definition:
-                    updated_definition["value"] = remote_default_value(remote_definition)
+                updated_definition["value"] = remote_default_value(remote_definition)
             parameter_changes_count += 1
             changes = True
 
@@ -267,7 +273,7 @@ def display_changes(
         changes = True
 
     if not changes:
-        print("\nNo descriptions, conditions, or conditional values need syncing.")
+        print("\nLocal config is already in sync with Firebase.")
     else:
         print(f"\n{parameter_changes_count} parameter change(s) will be written.")
     return changes, updated
