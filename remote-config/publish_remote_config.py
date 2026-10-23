@@ -34,13 +34,13 @@ PROJECTS = {
         {
             "1": (
                 "prod",
-                SCRIPT_DIR / "config-kinshield-prod.yml",
-                SCRIPT_DIR / "credentials" / "kinshield-prod-firebase-adminsdk.json",
+                SCRIPT_DIR / "configs" / "config-kinshield-prod.yml",
+                SCRIPT_DIR / "credentials" / "service-account-kinshield-prod.json",
             ),
             "2": (
                 "non-prod",
-                SCRIPT_DIR / "config-kinshield-nonprod.yml",
-                SCRIPT_DIR / "credentials" / "kinshield-non-prod-firebase-adminsdk.json",
+                SCRIPT_DIR / "configs" / "config-kinshield-nonprod.yml",
+                SCRIPT_DIR / "credentials" / "service-account-kinshield-non-prod.json",
             ),
         },
     ),
@@ -49,13 +49,13 @@ PROJECTS = {
         {
             "1": (
                 "prod",
-                SCRIPT_DIR / "config-shieldnet360-prod.yml",
-                SCRIPT_DIR / "credentials" / "shieldnet360-prod-firebase-adminsdk-fbsvc.json",
+                SCRIPT_DIR / "configs" / "config-shieldnet360-prod.yml",
+                SCRIPT_DIR / "credentials" / "service-account-shieldnet360-prod.json",
             ),
             "2": (
                 "non-prod",
-                SCRIPT_DIR / "config-shieldnet360-nonprod.yml",
-                SCRIPT_DIR / "credentials" / "shieldnet360-nonprod-firebase-adminsdk.json",
+                SCRIPT_DIR / "configs" / "config-shieldnet360-nonprod.yml",
+                SCRIPT_DIR / "credentials" / "service-account-shieldnet360-non-prod.json",
             ),
         },
     ),
