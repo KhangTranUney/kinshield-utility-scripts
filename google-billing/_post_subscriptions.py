@@ -25,7 +25,7 @@ from google.oauth2 import service_account
 
 # Add the scripts root to import the shared input helper.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from helper.interactive_input import confirm_input
+from helper._interactive_input import confirm_input
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent

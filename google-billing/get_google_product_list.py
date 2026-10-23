@@ -23,7 +23,7 @@ from google.oauth2 import service_account
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from helper.interactive_input import InputCancelled, read_input
+from helper._interactive_input import InputCancelled, read_input
 
 
 # Flow: select product/environment -> authenticate the service account -> fetch all

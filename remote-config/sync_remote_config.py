@@ -29,7 +29,7 @@ import publish_remote_config as publisher
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from helper.interactive_input import confirm_input
+from helper._interactive_input import confirm_input
 
 
 # Sync direction: Firebase -> local YAML; this script does not publish to Firebase.

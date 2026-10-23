@@ -18,7 +18,7 @@ from google.oauth2 import service_account
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from helper.interactive_input import confirm_input, read_input
+from helper._interactive_input import confirm_input, read_input
 
 
 # Flow: select project/environment -> read YAML -> fetch the template and ETag

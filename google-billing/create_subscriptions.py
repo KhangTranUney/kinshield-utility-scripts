@@ -33,7 +33,7 @@ PRORATION_MODES = {
 RESUBSCRIBE_STATES = {True: "RESUBSCRIBE_STATE_ACTIVE", False: "RESUBSCRIBE_STATE_INACTIVE"}
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from helper.interactive_input import read_input
+from helper._interactive_input import read_input
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
