@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 
+# Luồng chạy: đọc .env → chọn nguồn ticket → lưu/đọc danh sách ticket
+# → lấy thông tin cha → lập kế hoạch và kiểm tra trùng → xác nhận → tạo trên Jira.
+# Android: 1 Dev + 2 QA; iOS: chỉ 2 QA; có cả Android + iOS hoặc không có: bỏ qua.
+# Các bước xác nhận cho phép dừng trước khi ghi file hoặc tạo sub-task.
+
 import sys
 
 import re
 import requests
 from pathlib import Path
 
+# Thêm thư mục gốc scripts vào đường dẫn import để dùng helper khi chạy trực tiếp.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from helper.interactive_input import confirm_input, read_input
 
@@ -13,14 +19,18 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 ENV_FILE = SCRIPTS_DIR.parent / ".env"
 STORIES_FILE = SCRIPTS_DIR / "create_jira_sub_tasks_stories.md"
 
+# ID field Team, component QA và issue type Sub-task phụ thuộc cấu hình Jira này.
 TEAM_FIELD = "customfield_10361"
-DEV_COMPONENTS = {"Android", "iOS"}
+# Tách điều kiện Dev/QA để iOS vẫn có QA nhưng không sinh Dev sub-task.
+DEV_COMPONENTS = {"Android"}
+QA_COMPONENTS = {"Android", "iOS"}
 QA_COMPONENT = {"id": "11175", "name": "QA"}
 EXCLUDE_ISSUE_TYPES = {"Sub-task", "Spike"}
 
 
 def _check_response(response, context=""):
     """Check a requests response for errors and exit with a clear message."""
+    # Lỗi HTTP sẽ dừng toàn bộ script; sub-task đã tạo trước đó không được hoàn tác.
     if response.ok:
         return
     status = response.status_code
@@ -44,6 +54,8 @@ def _check_response(response, context=""):
 
 
 def load_env():
+    # Đọc .env ở thư mục gốc scripts, bỏ dòng trống/comment và tách tại dấu '=' đầu tiên.
+    # Đây là parser đơn giản: giữ nguyên dấu nháy trong value, không đọc os.environ.
     env_path = ENV_FILE
     if not env_path.exists():
         print(f"[ERROR] .env file not found at {env_path}")
@@ -58,12 +70,14 @@ def load_env():
 
 
 def confirm_or_cancel(prompt):
+    # Người dùng không đồng ý thì thoát bình thường, không chạy các bước tiếp theo.
     if not confirm_input(prompt):
         sys.exit(0)
 
 
 
 def extract_board_id(board_url):
+    # Lấy phần số sau /boards/ trong JIRA_BOARD_URL để gọi Jira Agile API.
     m = re.search(r"/boards/(\d+)", board_url)
     if not m:
         print(f"[ERROR] Could not extract board ID from JIRA_BOARD_URL: {board_url}")
@@ -72,6 +86,8 @@ def extract_board_id(board_url):
 
 
 # ── Board / sprint helpers ────────────────────────────────────────────────────
+# Các hàm lấy danh sách chỉ gọi một trang: tối đa 50 sprint hoặc 200 issue;
+# chưa lấy tiếp các trang còn lại nếu Jira có nhiều dữ liệu hơn.
 
 def fetch_sprints(base_url, auth, board_id):
     url = f"{base_url}/rest/agile/1.0/board/{board_id}/sprint?maxResults=50"
@@ -98,6 +114,8 @@ INCLUDE_STATUSES = {"Backlog", "Ready for Development"}
 
 
 def filter_backlog_tasks(issues):
+    # Áp dụng cho cả nguồn sprint và backlog: chỉ giữ Backlog/Ready for Development,
+    # loại Sub-task và Spike. Các issue type khác vẫn có thể làm ticket cha.
     return [
         i for i in issues
         if i["fields"]["status"]["name"] in INCLUDE_STATUSES
@@ -108,6 +126,7 @@ def filter_backlog_tasks(issues):
 # ── Story helpers ─────────────────────────────────────────────────────────────
 
 def fetch_story(base_url, auth, key):
+    # Chỉ yêu cầu các field phục vụ hiển thị, kế thừa dữ liệu và kiểm tra sub-task cũ.
     fields = f"summary,status,labels,components,{TEAM_FIELD},subtasks"
     url = f"{base_url}/rest/api/3/issue/{key}?fields={fields}"
     response = requests.get(url, auth=auth, headers={"Accept": "application/json"})
@@ -116,6 +135,8 @@ def fetch_story(base_url, auth, key):
 
 
 def fetch_existing_subtask_titles(base_url, auth, subtasks):
+    # Đọc summary từng sub-task và gom thành set để tra cứu tiêu đề trùng.
+    # So sánh chính xác chuỗi, không xét component, trạng thái hoặc người phụ trách.
     titles = set()
     for sub in subtasks:
         url = f"{base_url}/rest/api/3/issue/{sub['id']}?fields=summary"
@@ -126,6 +147,8 @@ def fetch_existing_subtask_titles(base_url, auth, subtasks):
 
 
 def parse_story(data, base_url):
+    # Chuẩn hóa dữ liệu để hiển thị và lập kế hoạch. Team có thể là list hoặc dict.
+    # Giữ cả tên component/team cho phần hiển thị và dữ liệu gốc cho payload tạo task.
     fields = data["fields"]
     key = data["key"]
     team_field = fields.get(TEAM_FIELD)
@@ -155,10 +178,19 @@ def parse_summary_tag(summary):
 
 
 def build_plan(story, qa_assignee_id=""):
+    # Chỉ xây dựng dữ liệu trong bộ nhớ; hàm này không gọi API hay tạo issue.
+    # Chỉ xử lý ticket có đúng một nền tảng Android hoặc iOS.
+    # Component khác có thể đi kèm, nhưng có cả hai nền tảng thì bỏ qua toàn bộ.
+    mobile_components = set(story["components"]) & QA_COMPONENTS
+    if len(mobile_components) != 1:
+        return []
+
     tasks = []
     dev_comps = [c for c in story["components"] if c in DEV_COMPONENTS]
 
     for comp in dev_comps:
+        # Chỉ Android thuộc DEV_COMPONENTS. Dev giữ tiêu đề cha với tiền tố [Dev],
+        # component tương ứng, labels và Team; không truyền assignee khi tạo.
         comp_raw = [c for c in story["components_raw"] if c["name"] == comp]
         tasks.append({
             "summary": f"[Dev]{story['summary']}",
@@ -169,7 +201,12 @@ def build_plan(story, qa_assignee_id=""):
             "assignee": None,
         })
 
-    if dev_comps:
+    if any(c in QA_COMPONENTS for c in story["components"]):
+        # Ticket đã qua kiểm tra một nền tảng thì tạo một cặp QA cho ticket cha.
+        # QA dùng component QA riêng.
+        # Tách tag đầu tiên để giữ tag trước tên công việc, ví dụ:
+        # [iOS] Login → [QA][iOS] Execute test - Login.
+        # QA kế thừa labels/Team và chỉ gán assignee khi có cấu hình account ID.
         tag, clean_title = parse_summary_tag(story["summary"])
         qa_prefix = f"[QA]{tag} " if tag else "[QA] "
         for action in ("Execute test", "Create test cases"):
@@ -186,6 +223,8 @@ def build_plan(story, qa_assignee_id=""):
 
 
 def create_sub_task(base_url, auth, project_key, parent_key, task):
+    # Chuyển kế hoạch thành payload Jira: nối với ticket cha, dùng issue type 10003
+    # và chỉ gửi ID của component. Team/assignee được thêm khi có giá trị.
     url = f"{base_url}/rest/api/3/issue"
     fields = {
         "project": {"key": project_key},
@@ -209,6 +248,7 @@ def create_sub_task(base_url, auth, project_key, parent_key, task):
 
 
 def parse_key(line):
+    # Chấp nhận mã như SAF-260 hoặc link /browse/SAF-260, bỏ query string của link.
     line = line.strip()
     if "/browse/" in line:
         return line.rstrip("/").split("/browse/")[-1].split("?")[0]
@@ -216,6 +256,8 @@ def parse_key(line):
 
 
 def read_story_keys():
+    # File là nguồn danh sách chung cho mọi chế độ; mỗi dòng là một mã hoặc link.
+    # Bỏ dòng trống/comment. Dừng nếu file không tồn tại hoặc không có ticket.
     if not STORIES_FILE.exists():
         print(f"[ERROR] Stories file not found: {STORIES_FILE}")
         sys.exit(1)
@@ -231,6 +273,9 @@ def read_story_keys():
 
 
 def write_stories_file(keys):
+    # Ghi đè toàn bộ file bằng hướng dẫn định dạng và danh sách vừa lấy từ board.
+    # main() hỏi xác nhận trước khi gọi hàm này. read_story_keys() đọc lại file
+    # ngay sau đó; người dùng cũng có thể chỉnh tay và dùng lại ở lần chạy sau.
     lines = [
         "# Stories",
         "# One entry per line. Lines starting with # are ignored.",
@@ -244,6 +289,8 @@ def write_stories_file(keys):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
+    # Bước chuẩn bị: bắt buộc base URL/email/API token; board URL và QA assignee
+    # là tùy chọn. requests dùng cặp email/token làm thông tin xác thực Basic Auth.
     env = load_env()
     base_url = env.get("JIRA_BASE_URL", "").rstrip("/")
     email = env.get("JIRA_EMAIL", "")
@@ -258,6 +305,8 @@ def main():
     auth = (email, token)
 
     # ── Step 0: Pick a group from the board ───────────────────────────────────
+    # Có board URL: hiển thị sprint active/future, backlog và tùy chọn dùng file cũ.
+    # Không có board URL: bỏ qua menu và đi thẳng đến bước đọc file hiện có.
     board_id = extract_board_id(board_url) if board_url else None
 
     if board_id:
@@ -265,15 +314,15 @@ def main():
         sprints = fetch_sprints(base_url, auth, board_id)
         active_future = [s for s in sprints if s["state"] in ("active", "future")]
 
-        groups = []
-        for s in active_future:
-            groups.append({"label": f"{s['name']} ({s['state']})", "type": "sprint", "id": s["id"]})
-        groups.append({"label": "Backlog (no sprint)", "type": "backlog", "id": board_id})
-        groups.append({
+        # Đặt nguồn file thường dùng ở option 1; sprint và backlog nằm phía sau.
+        groups = [{
             "label": f"Use {STORIES_FILE.name} directly",
             "type": "stories_file",
             "id": None,
-        })
+        }]
+        for s in active_future:
+            groups.append({"label": f"{s['name']} ({s['state']})", "type": "sprint", "id": s["id"]})
+        groups.append({"label": "Backlog (no sprint)", "type": "backlog", "id": board_id})
 
         for i, g in enumerate(groups, 1):
             print(f"  {i}. {g['label']}")
@@ -289,6 +338,8 @@ def main():
         if selected["type"] == "stories_file":
             print(f"\nUsing existing {STORIES_FILE.name}...")
         else:
+            # Chọn sprint/backlog: lấy issue, lọc status/type, hiển thị kết quả
+            # và xin xác nhận trước khi thay nội dung file danh sách ticket.
             print(f"\nFetching '{selected['label']}'...")
             if selected["type"] == "sprint":
                 issues = fetch_sprint_issues(base_url, auth, selected["id"])
@@ -309,6 +360,9 @@ def main():
             print(f"{STORIES_FILE.name} updated with {len(keys)} keys.\n")
 
     # ── Step 1: Fetch and display all stories ─────────────────────────────────
+    # Mọi nhánh đều đọc danh sách từ file, sau đó tải chi tiết từng ticket lên màn hình.
+    # Dùng file trực tiếp sẽ không áp dụng lại bộ lọc status/type của nguồn board.
+    # Xác nhận ở cuối bước giúp kiểm tra ticket cha trước khi lập kế hoạch.
     story_keys = read_story_keys()
     print("=== Fetching Stories ===\n")
     stories = []
@@ -327,26 +381,57 @@ def main():
     confirm_or_cancel("Stories look correct? Continue with planning")
 
     # ── Step 2: Build and display plan ────────────────────────────────────────
+    # Lập kế hoạch Dev/QA theo component và chụp danh sách tiêu đề sub-task hiện có.
+    # Đánh dấu các tiêu đề trùng để bỏ qua; chưa tạo gì trên Jira ở bước này.
+    # Lưu story, plan và existing_titles để bước tạo dùng đúng kế hoạch đã hiển thị.
     print("\n=== Sub-task Plan ===\n")
     story_plans = []
+    problem_stories = []
     for story in stories:
         plan = build_plan(story, qa_assignee_id)
+        if not plan:
+            mobile_components = set(story["components"]) & QA_COMPONENTS
+            reason = (
+                "Has both Android and iOS components; only one platform is allowed."
+                if len(mobile_components) > 1
+                else "Missing Android or iOS component."
+            )
+            problem_stories.append((story, reason))
+            continue
         existing_titles = fetch_existing_subtask_titles(base_url, auth, story["subtasks"])
         story_plans.append((story, plan, existing_titles))
-        if not plan:
-            print(f"  [{story['key']}] No sub-tasks to create (no Android/iOS component).")
-            continue
-        print(f"  [{story['key']}] {story['summary']}")
+
+    # Gom ticket hợp lệ và ticket có vấn đề thành hai phần để dễ kiểm tra.
+    # Ticket có vấn đề không nằm trong story_plans nên không được tạo sub-task.
+    print(f"--- OK ({len(story_plans)} tickets) ---\n")
+    if not story_plans:
+        print("  None.\n")
+    for story, plan, existing_titles in story_plans:
+        new_count = sum(task["summary"] not in existing_titles for task in plan)
+        print(f"  [OK] [{story['key']}] {story['summary']}")
+        print(f"    Components: {', '.join(story['components'])}")
+        print(f"    Sub-tasks: {new_count} to create, {len(plan) - new_count} already exist")
         for task in plan:
             if task["summary"] in existing_titles:
                 print(f"    - {task['summary']}  [skip: already exists]")
             else:
-                print(f"    - {task['summary']}")
+                print(f"    - {task['summary']}  [create]")
+        print()
+
+    print(f"--- ISSUES / SKIPPED ({len(problem_stories)} tickets) ---\n")
+    if not problem_stories:
+        print("  None.\n")
+    for story, reason in problem_stories:
+        print(f"  [ISSUE] [{story['key']}] {story['summary']}")
+        print(f"    Components: {', '.join(story['components']) or 'N/A'}")
+        print(f"    Reason: {reason}")
         print()
 
     confirm_or_cancel("Proceed with creating sub-tasks?")
 
     # ── Step 3: Create sub-tasks ──────────────────────────────────────────────
+    # Chỉ tới đây sau khi người dùng đồng ý tạo. Project được suy ra từ key đầu tiên,
+    # nên danh sách đầu vào cần thuộc cùng một project.
     print("\n=== Creating Sub-tasks ===\n")
     project_key = story_keys[0].split("-")[0]
 
@@ -355,6 +440,8 @@ def main():
             continue
         print(f"  [{story['key']}]")
         for task in plan:
+            # Dùng danh sách tiêu đề đã lấy ở bước 2, không tải lại trước mỗi lần tạo.
+            # Task trùng được bỏ qua; task mới được POST lần lượt và in key/link.
             if task["summary"] in existing_titles:
                 print(f"    Skipped (already exists): {task['summary']}")
                 continue
