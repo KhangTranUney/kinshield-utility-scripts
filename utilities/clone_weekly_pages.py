@@ -36,8 +36,8 @@ CONFLUENCE_BASE = "https://aottws.atlassian.net/wiki"
 # Template page IDs to clone, with display labels for the Teams message
 TEMPLATE_PAGES = [
     (1402798483, "UQI",      "Core - Shared Platform"),
-    (1403191574, "SAFENEST", "KinShield"),
-    (1403191452, "KUD",      "KinSense"),
+    (1403191574, "SAFENEST", "Pyffe"),
+    (1403191452, "KUD",      "Strazee"),
     (1403191481, "UAV",      "SkyTrack"),
     (1403191564, "ZTNA",     "ShieldNet"),
 ]
@@ -264,8 +264,8 @@ def build_teams_message(results):
         "Report update:",
         f"- Core - Shared Platform: {link('Core - Shared Platform')}",
         "- B2C:",
-        f"    - KinShield: {link('KinShield')}",
-        f"    - KinSense: {link('KinSense')}",
+        f"    - Pyffe: {link('Pyffe')}",
+        f"    - Strazee: {link('Strazee')}",
         "- B2B:",
         f"    - SkyTrack: {link('SkyTrack')}",
         f"    - ShieldNet: {link('ShieldNet')}",
