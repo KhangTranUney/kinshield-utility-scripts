@@ -1,0 +1,97 @@
+project_id: 633444963116
+params:
+    app_share_url:
+        description: "App sharing URL and base URL for pairing links."
+        deleted: false
+        data_type: string
+        value: "https://example.com"
+    appstore_link:
+        description: "iOS app store link"
+        deleted: false
+        data_type: string
+        value: "https://itunes.apple.com/app/id000000000000?action=write-review"
+    companion_qr_image:
+        description: "URL of the QR code image for the companion app."
+        deleted: false
+        data_type: string
+        value: "https://storage3.me-qr.com/qr/332536074.png?v=1776064392"
+    floating_button_hide_duration:
+        description: "Time before the floating button is automatically hidden."
+        deleted: false
+        data_type: number
+        value: 3600
+    input_lang_threshold_high:
+        description: "High confidence threshold for input language detection."
+        deleted: false
+        data_type: number
+        value: 0.6
+    input_lang_threshold_low:
+        description: "Low confidence threshold for input language detection."
+        deleted: false
+        data_type: number
+        value: 0.1
+    leave_countdown_seconds:
+        description: "Countdown before leaving the family, in seconds."
+        deleted: false
+        data_type: number
+        value: 5
+    notif_permission_interval:
+        description: "Interval between notification permission prompts, in seconds."
+        deleted: false
+        data_type: number
+        value: 604800
+    notif_permission_max:
+        description: "Maximum number of notification permission prompts."
+        deleted: false
+        data_type: number
+        value: 3
+    notif_token_update:
+        description: "Interval for updating the notification token, in seconds."
+        deleted: false
+        data_type: number
+        value: 604800
+    paywall_onboarding:
+        description: "Whether to show the paywall when entering the home screen."
+        deleted: false
+        data_type: boolean
+        value: true
+    playstore_link:
+        description: "Android app store link"
+        deleted: false
+        data_type: string
+        value: "market://details?id=com.example"
+    safari_extension_setup_url:
+        description: "URL of the Safari extension setup instructions."
+        deleted: false
+        data_type: string
+        value: "https://safari-extension-setup-208492520960.us-west1.run.app"
+    settings_about_url:
+        description: "URL of the about page."
+        deleted: false
+        data_type: string
+        value: "https://pyffe.com/?utm_source=inapp"
+    settings_faq_url:
+        description: "URL of the frequently asked questions page."
+        deleted: false
+        data_type: string
+        value: "https://pyffe.com/?utm_source=inapp"
+    settings_message_app:
+        description: "Show or hide the message app feature"
+        deleted: false
+        data_type: boolean
+        value: false
+    settings_privacy_url:
+        description: "URL of the privacy policy page."
+        deleted: false
+        data_type: string
+        value: "https://pyffe.com/privacy-policy?utm_source=inapp"
+    settings_tos_url:
+        description: "URL of the T&C page in Scam Check."
+        deleted: false
+        data_type: string
+        value: "https://pyffe.com/tos?utm_source=inapp"
+    timeout_domain_check:
+        description: "Domain check timeout, in seconds."
+        deleted: false
+        data_type: number
+        value: 5

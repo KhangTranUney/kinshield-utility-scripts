@@ -18,84 +18,16 @@ from google.oauth2 import service_account
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from helper._interactive_input import confirm_input, read_input
+from helper._interactive_input import confirm_input
+from _remote_config_environment import ConfigError, choose_environment
 
 
 # Flow: select project/environment -> read YAML -> fetch the template and ETag
 # -> merge and preview -> Firebase validate_only -> confirm -> publish with the original ETag.
-SCRIPT_DIR = Path(__file__).resolve().parent
 API_URL = "https://firebaseremoteconfig.googleapis.com/v1/projects/{project_id}/remoteConfig"
 SCOPES = ["https://www.googleapis.com/auth/firebase.remoteconfig"]
 TIMEOUT_SECONDS = 30
 DATA_TYPES = {"string": "STRING", "number": "NUMBER", "boolean": "BOOLEAN", "json": "JSON"}
-PROJECTS = {
-    "1": (
-        "KinShield",
-        {
-            "1": (
-                "prod",
-                SCRIPT_DIR / "configs" / "config-kinshield-prod.yml",
-                SCRIPT_DIR / "credentials" / "service-account-kinshield-prod.json",
-            ),
-            "2": (
-                "non-prod",
-                SCRIPT_DIR / "configs" / "config-kinshield-nonprod.yml",
-                SCRIPT_DIR / "credentials" / "service-account-kinshield-non-prod.json",
-            ),
-        },
-    ),
-    "2": (
-        "ShieldNet 360",
-        {
-            "1": (
-                "prod",
-                SCRIPT_DIR / "configs" / "config-shieldnet360-prod.yml",
-                SCRIPT_DIR / "credentials" / "service-account-shieldnet360-prod.json",
-            ),
-            "2": (
-                "non-prod",
-                SCRIPT_DIR / "configs" / "config-shieldnet360-nonprod.yml",
-                SCRIPT_DIR / "credentials" / "service-account-shieldnet360-non-prod.json",
-            ),
-        },
-    ),
-}
-
-
-class ConfigError(ValueError):
-    """Raised when a manifest cannot be converted into a safe API request."""
-
-
-def choose_environment() -> tuple[str, Path, Path]:
-    print("Choose the Firebase project:")
-    print("  1. KinShield")
-    print("  2. ShieldNet 360")
-    try:
-        project_choice = read_input("Enter 1 or 2: ").strip()
-    except EOFError as exc:
-        raise ConfigError("No Firebase project was selected.") from exc
-    project = PROJECTS.get(project_choice)
-    if project is None:
-        raise ConfigError("Invalid project. Choose 1 for KinShield or 2 for ShieldNet 360.")
-
-    project_name, environments = project
-    print("Choose the Firebase environment:")
-    print("  1. prod")
-    print("  2. non-prod")
-    try:
-        choice = read_input("Enter 1 or 2: ").strip()
-    except EOFError as exc:
-        raise ConfigError("No environment was selected.") from exc
-    environment = environments.get(choice)
-    if environment is None:
-        raise ConfigError("Invalid environment. Choose 1 for prod or 2 for non-prod.")
-    name, config_path, service_account_path = environment
-    if not config_path.is_file():
-        raise ConfigError(f"{name} config file does not exist: {config_path}")
-    if not service_account_path.is_file():
-        raise ConfigError(f"{name} service-account JSON does not exist: {service_account_path}")
-    return f"{project_name} {name}", config_path, service_account_path
-
 
 def load_manifest(path: Path) -> tuple[str, dict[str, dict[str, Any]]]:
     # Each parameter requires exactly one of value/condition_value unless deleted is true.

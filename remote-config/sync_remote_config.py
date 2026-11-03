@@ -26,6 +26,7 @@ from google.oauth2 import service_account
 import google.auth.transport.requests
 
 import publish_remote_config as publisher
+from _remote_config_environment import choose_environment
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -33,7 +34,7 @@ from helper._interactive_input import confirm_input
 
 
 # Sync direction: Firebase -> local YAML; this script does not publish to Firebase.
-# Reuse menu, authentication, and manifest validation from publish_remote_config.
+# Reuse authentication and manifest validation from publish_remote_config.
 REMOTE_TYPES = {value: key for key, value in publisher.DATA_TYPES.items()}
 
 
@@ -380,7 +381,7 @@ def confirm_update(config_path: Path):
 
 def main() -> int:
     try:
-        environment, config_path, service_account_path = publisher.choose_environment()
+        environment, config_path, service_account_path = choose_environment()
         print(f"Selected {environment}.")
         # Read/validate local config before authentication and fetching remote; preview, then confirm writing.
         document = load_document(config_path)
