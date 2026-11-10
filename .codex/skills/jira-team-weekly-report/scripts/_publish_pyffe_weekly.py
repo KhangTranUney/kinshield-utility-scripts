@@ -35,13 +35,14 @@ def inline(text):
     return ''.join(result) + escape(text[end:])
 
 
-def report_html(markdown):
+def report_html(markdown, plan=False):
     """Render the report format as a list, including its ticket reference table."""
     lines = markdown.splitlines()
     parts = []
     nested = False
     table = False
     skip_section = False
+    found_plan = False
     for line in lines:
         if not line.strip():
             continue
@@ -49,7 +50,9 @@ def report_html(markdown):
             continue
         if line.startswith('- '):
             label = re.sub(r'\*\*', '', line[2:]).strip().rstrip(':').casefold()
-            skip_section = label in {'referenced jira tickets', 'scope and limitations'}
+            is_plan = label == 'this week plan'
+            found_plan = found_plan or is_plan
+            skip_section = not is_plan if plan else label in {'referenced jira tickets', 'scope and limitations', 'this week plan'}
         if skip_section:
             continue
         if line.startswith('  |'):
@@ -69,6 +72,9 @@ def report_html(markdown):
         if table:
             parts.append('</tbody></table></li>')
             table = False
+        if plan and line.startswith('- '):
+            nested = True
+            continue
         if line.startswith('- '):
             if nested:
                 parts.append('</ul></li>')
@@ -80,8 +86,10 @@ def report_html(markdown):
             raise ValueError('Unsupported Markdown line: ' + line[:120])
     if table:
         parts.append('</tbody></table></li>')
-    if nested:
+    if nested and not plan:
         parts.append('</ul></li>')
+    if plan and not found_plan:
+        raise ValueError('Report is missing the This Week Plan section')
     if not parts:
         raise ValueError('Report has no content')
     return ''.join(parts)
@@ -89,7 +97,7 @@ def report_html(markdown):
 
 class AndroidSection(HTMLParser):
     """Locate the Android list in the first progress table without rewriting storage XML."""
-    def __init__(self, source):
+    def __init__(self, source, plan=False):
         super().__init__(convert_charrefs=True)
         self.source = source
         self.offsets = [0]
@@ -97,7 +105,7 @@ class AndroidSection(HTMLParser):
             self.offsets.append(self.offsets[-1] + len(line))
         self.stack = []
         self.table_count = 0
-        self.capture = None
+        self.plan = plan
         self.matches = []
 
     def pos(self):
@@ -110,7 +118,7 @@ class AndroidSection(HTMLParser):
         node = {'tag': tag, 'start': start, 'open_end': start + len(raw), 'text': ''}
         if tag == 'table':
             self.table_count += 1
-        if self.table_count == 1 and tag == 'li' and any(n['tag'] == 'table' for n in self.stack):
+        if tag == 'li' and (self.plan or (self.table_count == 1 and any(n['tag'] == 'table' for n in self.stack))):
             node['first_table'] = True
         self.stack.append(node)
 
@@ -131,8 +139,16 @@ class AndroidSection(HTMLParser):
                 self.matches.append((node['open_end'], node['start'], self.pos(), node['text']))
 
 
-def fill_android(body, html):
-    parser = AndroidSection(body)
+def fill_android(body, html, plan=False):
+    if plan is True:
+        match = re.search(r"<h[1-6]\b[^>]*>\s*4\.\s*This Week Plan\s*</h[1-6]>", body, re.IGNORECASE)
+        if not match:
+            raise ValueError("Could not find This Week Plan heading")
+        start = match.end()
+        next_heading = re.search(r"<h[1-6]\b", body[start:], re.IGNORECASE)
+        end = start + next_heading.start() if next_heading else len(body)
+        return body[:start] + fill_android(body[start:end], html, plan="section") + body[end:]
+    parser = AndroidSection(body, plan=(plan == "section"))
     parser.feed(body)
     if len(parser.matches) != 1:
         raise ValueError('Could not uniquely identify the Android section in the first table')
@@ -154,7 +170,9 @@ def main():
             raise ValueError('Report start date must be a Monday')
         monday = datetime.combine(monday_date, time.min)
         friday = monday + timedelta(days=4)
-        html = report_html(args.report.read_text(encoding='utf-8'))
+        markdown = args.report.read_text(encoding='utf-8')
+        html = report_html(markdown)
+        plan_html = report_html(markdown, plan=True)
         email, token = clone.get_credentials()
         info = clone.fetch_page_info(TEMPLATE_ID, email, token, monday.isocalendar()[1], monday, friday)
         endpoint = f"content?spaceKey={quote(info['space_key'])}&title={quote(info['new_title'])}&type=page&expand=body.storage,version"
@@ -164,6 +182,7 @@ def main():
         if found:
             page = found[0]
             new_body = fill_android(page['body']['storage']['value'], html)
+            new_body = fill_android(new_body, plan_html, plan=True)
             payload = {'id': page['id'], 'type': 'page', 'title': page['title'],
                        'version': {'number': page['version']['number'] + 1},
                        'body': {'storage': {'value': new_body, 'representation': 'storage'}}}
@@ -174,6 +193,7 @@ def main():
             result = response.json()
         else:
             info['body_html'] = fill_android(info['body_html'], html)
+            info['body_html'] = fill_android(info['body_html'], plan_html, plan=True)
             payload = {'type': 'page', 'title': info['new_title'], 'space': {'key': info['space_key']},
                        'body': {'storage': {'value': info['body_html'], 'representation': 'storage'}}}
             if info['parent_id']:

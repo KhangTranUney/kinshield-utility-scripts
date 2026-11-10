@@ -53,7 +53,7 @@ def previous_week(today):
 
 FIELDS = ["summary", "description", "status", "assignee", "fixVersions", "updated",
           "created", "issuetype", "priority", "parent", "resolution", "resolutiondate",
-          "project", "components", "labels"]
+          "project", "components", "labels", "duedate"]
 
 
 def request_json(session, method, url, **kwargs):
@@ -71,7 +71,11 @@ def request_json(session, method, url, **kwargs):
 def search_candidates(session, base_url, start):
     # Do not cap updated: issues updated again this week are still candidates.
     jql = JQL.replace('AND updated < "{end}"\n', '').format(start=start.isoformat())
-    payload = {"jql": jql, "fields": FIELDS, "maxResults": 100}
+    return search(session, base_url, jql, FIELDS)
+
+
+def search(session, base_url, jql, fields):
+    payload = {"jql": jql, "fields": fields, "maxResults": 100}
     result, seen = [], set()
     while True:
         data = request_json(session, "POST", f"{base_url}/rest/api/3/search/jql", json=payload)
@@ -150,10 +154,18 @@ def main():
                 raise RuntimeError("Jira did not return the account time zone; cannot filter history accurately")
             tz = ZoneInfo(me["timeZone"])
             issues = collect(session, base_url, start, end, tz)
+            # The weekly search misses open issues without recent updates. Restrict
+            # additional candidates to the Pyffe project and the configured assignees.
+            fields_metadata = request_json(session, "GET", f"{base_url}/rest/api/3/field")
+            start_fields = [field["id"] for field in fields_metadata if field.get("name", "").casefold() == "start date"]
+            plan_jql = JQL[:JQL.index("AND updated")] + "AND project = SAF AND statusCategory != Done ORDER BY priority DESC, key ASC"
+            plan_candidates = search(session, base_url, plan_jql, FIELDS + start_fields)
         result = {"period": {"start": start.isoformat(), "end_exclusive": end.isoformat(),
                              "jira_timezone": str(tz)},
                   "scope": "Current assignee is in the configured list or currentUser()",
-                  "issues": issues}
+                  "issues": issues,
+                  "plan_start_date_fields": start_fields,
+                  "plan_candidates": [{"key": i["key"], "url": f"{base_url}/browse/{i['key']}", "fields": i["fields"]} for i in plan_candidates]}
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"Exported {len(issues)} issues to {args.output} ({start} through {end - timedelta(days=1)}, Jira: {tz})")
     except (ValueError, KeyError, OSError, RuntimeError, requests.RequestException) as exc:
