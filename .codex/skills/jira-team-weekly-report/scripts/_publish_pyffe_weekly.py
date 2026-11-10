@@ -37,10 +37,16 @@ def report_html(markdown):
     parts = []
     nested = False
     table = False
+    skip_section = False
     for line in lines:
         if not line.strip():
             continue
         if line.startswith('# '):
+            continue
+        if line.startswith('- '):
+            label = re.sub(r'\*\*', '', line[2:]).strip().rstrip(':').casefold()
+            skip_section = label in {'referenced jira tickets', 'scope and limitations'}
+        if skip_section:
             continue
         if line.startswith('  |'):
             cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
