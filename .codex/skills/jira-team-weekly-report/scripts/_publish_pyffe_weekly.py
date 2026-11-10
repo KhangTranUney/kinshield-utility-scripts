@@ -19,14 +19,18 @@ TEMPLATE_ID = 1403191574
 
 def inline(text):
     """Render the report's Markdown links and bold text as storage-format HTML."""
-    pattern = re.compile(r'\[([^\]]+)\]\((https?://[^\s)]+)\)|\*\*([^*]+)\*\*')
+    pattern = re.compile(r'\[([^\]]+)\]\((https?://[^\s)]+)\)|\*\*([^*]+)\*\*|\[(DONE|IN PROGRESS)\]')
     result, end = [], 0
     for match in pattern.finditer(text):
         result.append(escape(text[end:match.start()]))
         if match.group(1) is not None:
             result.append('<a href="' + escape(match.group(2), quote=True) + '">' + escape(match.group(1)) + '</a>')
-        else:
+        elif match.group(3) is not None:
             result.append('<strong>' + escape(match.group(3)) + '</strong>')
+        else:
+            status = match.group(4)
+            colour = 'Green' if status == 'DONE' else 'Blue'
+            result.append('<ac:structured-macro ac:name="status"><ac:parameter ac:name="colour">' + colour + '</ac:parameter><ac:parameter ac:name="title">' + status + '</ac:parameter></ac:structured-macro>')
         end = match.end()
     return ''.join(result) + escape(text[end:])
 
