@@ -3,3 +3,4 @@ __pycache__/
 google-billing/credentials/
 google-billing/reports/
 remote-config/credentials/
+/report/
