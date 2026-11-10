@@ -15,6 +15,7 @@ Usage:
 # -> preview and confirm -> create missing pages -> print/copy the report text.
 # Storage content and parent pages come from templates; no Teams message is sent.
 
+import argparse
 import json
 import os
 import re
@@ -284,6 +285,9 @@ def copy_to_clipboard(text):
 # ---------------------------------------------------------------------------
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--yes", action="store_true", help="Skip the creation confirmation")
+    args = parser.parse_args()
     email, token = get_credentials()
     week_num, monday, friday = previous_week_info()
 
@@ -307,7 +311,7 @@ def main():
     print(f"\n{'='*60}")
 
     # Phase 2: Ask for confirmation
-    if not confirm_input("Create these pages?"):
+    if not args.yes and not confirm_input("Create these pages?"):
         sys.exit(0)
 
     # Phase 3: Create pages
@@ -330,6 +334,9 @@ def main():
         print("Copied to clipboard!")
     else:
         print("Failed to copy to clipboard — copy the message above manually.")
+
+    if len(created) != len(pages):
+        sys.exit(1)
 
 
 if __name__ == "__main__":

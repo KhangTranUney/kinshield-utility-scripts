@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Collect Jira data for a team-wide report for the previous calendar week.
 
-Run: python3 .codex/skills/jira-team-weekly-report/scripts/_export_jira_team_weekly_report.py [-o report.json]
+Run: python3 .codex/skills/jira-team-weekly-report/scripts/_export_pyffe_jira_weekly.py [-o report.json]
 Dates use the local machine; JQL date boundaries use the Jira account time zone.
 """
 
