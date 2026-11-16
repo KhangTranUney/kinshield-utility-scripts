@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Ngăn máy tự chuyển sang chế độ ngủ khi không hoạt động.
+# Chạy nền để script có thể cập nhật thời gian đã chạy.
+caffeinate -i &
+caffeinate_pid=$!
+start_time=$(date +%s)
+
+cleanup() {
+  # Dừng và thu hồi tiến trình nền khi script kết thúc.
+  kill "$caffeinate_pid" 2>/dev/null || true
+  wait "$caffeinate_pid" 2>/dev/null || true
+  printf '\n'
+}
+trap cleanup EXIT
+# Ctrl+C hoặc tín hiệu dừng sẽ thoát và gọi cleanup qua trap EXIT.
+trap 'exit 0' INT TERM
+
+printf 'caffeinate đang chạy (PID: %s). Nhấn Ctrl+C để dừng.\n' "$caffeinate_pid"
+while kill -0 "$caffeinate_pid" 2>/dev/null; do
+  # Cập nhật cùng một dòng mỗi 10 giây khi caffeinate còn chạy.
+  elapsed=$(( $(date +%s) - start_time ))
+  printf '\r\033[KĐã chạy: %d ngày, %d giờ, %d phút, %d giây' \
+    "$((elapsed / 86400))" "$((elapsed % 86400 / 3600))" \
+    "$((elapsed % 3600 / 60))" "$((elapsed % 60))"
+  sleep 10
+done
+
+# Truyền mã lỗi của caffeinate ra ngoài nếu tiến trình dừng bất thường.
+if wait "$caffeinate_pid"; then
+  exit 0
+else
+  status=$?
+  printf 'caffeinate đã dừng với mã lỗi %s.\n' "$status" >&2
+  exit "$status"
+fi
