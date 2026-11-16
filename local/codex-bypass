@@ -1,0 +1,11 @@
+#!/bin/sh
+# Run Codex with unrestricted access from the current working directory.
+# -----------------------------------------------------------------------------
+# Setup alias (run from any directory in zsh):
+#   chmod +x /Users/khangtran/Documents/qualgo/scripts/codex-bypass
+#   Add to ~/.zshrc:
+#     alias codex-bypass='/Users/khangtran/Documents/qualgo/scripts/codex-bypass'
+#   Run `source ~/.zshrc` or open a new terminal.
+# If the script moves, update the path in both commands. Codex must be on PATH.
+# -----------------------------------------------------------------------------
+exec codex --dangerously-bypass-approvals-and-sandbox "$@"

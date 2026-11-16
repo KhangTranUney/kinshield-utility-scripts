@@ -1,0 +1,150 @@
+#!/bin/bash
+# Approve and merge each GitHub pull request, falling back to the alternate token.
+# -----------------------------------------------------------------------------
+# Setup alias (run from any directory in zsh):
+#   chmod +x /Users/khangtran/Documents/qualgo/scripts/pr-merge
+#   Add to ~/.zshrc:
+#     alias pr-merge='/Users/khangtran/Documents/qualgo/scripts/pr-merge'
+#   Run `source ~/.zshrc` or open a new terminal.
+# If the script moves, update the path in both commands.
+# -----------------------------------------------------------------------------
+# Setup tokens (add these exports to ~/.zshrc):
+#   export GITHUB_TOKEN_MINE="your-primary-token"
+#   export GITHUB_TOKEN_ALT="your-alternate-token"
+# Run `source ~/.zshrc` (or open a new terminal) after updating them.
+# Each token needs access to the repository and permission to review and merge PRs
+# (for fine-grained tokens: pull requests read/write and contents read/write).
+# The alternate token is optional and is tried if the primary token fails.
+# -----------------------------------------------------------------------------
+set -u
+
+# Check the required CLI and make sure at least one argument was provided.
+if ! command -v gh >/dev/null 2>&1; then
+  echo 'Error: GitHub CLI (gh) is required.' >&2
+  exit 1
+fi
+
+if [ "$#" -eq 0 ]; then
+  echo 'Usage: pr-merge <PR URL> [<PR URL> ...] (URLs may also be comma-separated)' >&2
+  exit 1
+fi
+
+# Split each argument on commas and whitespace, then normalize each PR URL.
+# Keep owner, repository, and PR number; discard paths, queries, and fragments.
+urls=()
+for arg in "$@"; do
+  arg=${arg//,/ }
+  read -r -a parts <<< "$arg"
+  for part in "${parts[@]}"; do
+    if [[ "$part" =~ ^https://github\.com/([^/?#]+)/([^/?#]+)/pull/([0-9]+)($|[/?#]) ]]; then
+      urls+=("https://github.com/${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/pull/${BASH_REMATCH[3]}")
+    else
+      echo "Error: invalid GitHub PR URL: $part" >&2
+      exit 1
+    fi
+  done
+done
+
+if [ "${#urls[@]}" -eq 0 ]; then
+  echo 'Error: no PR URLs provided.' >&2
+  exit 1
+fi
+
+# At least one exported token must be available.
+if [ -z "${GITHUB_TOKEN_MINE:-}" ] && [ -z "${GITHUB_TOKEN_ALT:-}" ]; then
+  echo 'Error: export GITHUB_TOKEN_MINE and/or GITHUB_TOKEN_ALT first.' >&2
+  exit 1
+fi
+
+merge_pr() {
+  local url=$1 output endpoint response status uuid i
+  # Try the regular GitHub CLI merge first.
+  echo '  Sending merge request (merge commit).'
+  if output=$(gh pr merge "$url" --merge 2>&1); then
+    [ -z "$output" ] || printf '%s\n' "$output"
+    return 0
+  fi
+  printf '%s\n' "$output" >&2
+  # Only switch to the asynchronous API when GitHub says this PR requires it.
+  if [[ "$output" != *"merge-async"* && "$output" != *"asynchronous merge REST API"* ]]; then
+    return 1
+  fi
+  if [[ ! "$url" =~ ^https://github\.com/([^/]+)/([^/]+)/pull/([0-9]+)(/.*)?$ ]]; then
+    echo 'Cannot determine repository and PR number for asynchronous merge.' >&2
+    return 1
+  fi
+  # Request a merge commit and retain the request ID for status checks.
+  endpoint="repos/${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/pulls/${BASH_REMATCH[3]}/merge-async"
+  echo '  This PR requires asynchronous merge; sending request.'
+  response=$(gh api --method PUT -H 'X-GitHub-Api-Version: 2026-03-10' "$endpoint" -f merge_method=merge -f merge_action=direct_merge --jq '[.status, (.details.uuid // "")] | @tsv') || return 1
+  status=${response%%$'\t'*}
+  uuid=${response#*$'\t'}
+  if [ "$status" = merged ]; then return 0; fi
+  if [ "$status" != pending ] || [ "$uuid" = "$response" ] || [ -z "$uuid" ]; then
+    echo "Unexpected asynchronous merge result: $response" >&2
+    return 1
+  fi
+  echo "  Asynchronous merge requested (ID: $uuid)."
+  # Poll at two-second intervals, including after HTTP errors, up to 30 times.
+  # A pending or unknown result must not trigger a second merge request.
+  for ((i=0; i<30; i++)); do
+    echo "  Checking merge status (attempt $((i + 1))/30)."
+    if ! response=$(gh api -H 'X-GitHub-Api-Version: 2026-03-10' "$endpoint/$uuid" --jq '[.status, (.details.message // "")] | @tsv'); then
+      echo 'Could not check asynchronous merge status; retrying in 2 seconds.' >&2
+      sleep 2
+      continue
+    fi
+    status=${response%%$'\t'*}
+    echo "  Merge status: $status."
+    case "$status" in
+      merged) return 0 ;;
+      pending) sleep 2 ;;
+      *) echo "Asynchronous merge result: $response" >&2; return 2 ;;
+    esac
+  done
+  echo "Asynchronous merge is still pending; check $url before retrying." >&2
+  return 2
+}
+
+# Process each PR independently so one failure does not stop the remaining URLs.
+failed=0
+for url in "${urls[@]}"; do
+  echo "Processing: $url"
+  success=0
+  # Try the primary token first, then the alternate if approval or merge fails.
+  for name in GITHUB_TOKEN_MINE GITHUB_TOKEN_ALT; do
+    token=${!name:-}
+    if [ -z "$token" ]; then
+      echo "  Skipping $name: token is not set."
+      continue
+    fi
+    echo "  Trying $name"
+    echo '  Sending approval.'
+    # Approve first; only attempt to merge if approval succeeds.
+    if GH_TOKEN="$token" GITHUB_TOKEN="$token" GH_PROMPT_DISABLED=1 gh pr review "$url" --approve && \
+       { echo '  Approval succeeded.'; } && \
+       GH_TOKEN="$token" GITHUB_TOKEN="$token" GH_PROMPT_DISABLED=1 merge_pr "$url"; then
+      success=1
+      echo "  Merged: $url"
+      break
+    else
+      else_status=$?
+    fi
+    # Do not retry with another token while an async request may still be active.
+    if [ "$else_status" -eq 2 ]; then
+      echo "  Merge status needs checking; stopping retries for this PR." >&2
+      break
+    fi
+    echo "  $name failed; trying the next available token." >&2
+  done
+  if [ "$success" -eq 0 ]; then
+    echo "  Failed: $url" >&2
+    failed=$((failed + 1))
+  fi
+done
+
+# Return a nonzero exit code if any PR failed or needs a manual status check.
+if [ "$failed" -gt 0 ]; then
+  echo "$failed PR(s) could not be merged." >&2
+  exit 1
+fi
