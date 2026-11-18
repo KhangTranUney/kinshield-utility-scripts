@@ -111,7 +111,14 @@ Cài Codex CLI tại `/opt/homebrew/bin/codex` và đăng nhập Codex trên má
 python3 telegram-bot/start_telegram_bot.py
 ```
 
-Lệnh này cài và khởi động bot bằng macOS `launchd`, dùng Python đang chạy lệnh. Chạy lại lệnh sau khi thay đổi `.env` để bot đọc cấu hình mới. Bot chỉ nhận tin nhắn riêng từ user ID đã cấu hình. Codex chạy với full access và không có sandbox hay bước duyệt lệnh của Codex, nên có thể truy cập các file và dịch vụ mà tài khoản macOS của bạn có quyền truy cập. Gửi `/new` để bắt đầu hội thoại Codex mới.
+Để gọi từ bất kỳ thư mục nào, có thể tạo lệnh `start-telegram-bot` trong `~/.local/bin` (thư mục này cần có trong `PATH`):
+
+```sh
+mkdir -p ~/.local/bin
+ln -s "$PWD/telegram-bot/start_telegram_bot.py" ~/.local/bin/start-telegram-bot
+```
+
+Lệnh này cài và khởi động bot bằng macOS `launchd`, dùng Python đang chạy lệnh, rồi hiển thị log liên tục và báo lỗi nếu tiến trình bot dừng hoặc khởi động lại. Nhấn Ctrl+C để dừng bot. Chạy lại lệnh sau khi thay đổi `.env` để bot đọc cấu hình mới. Bot chỉ nhận tin nhắn riêng từ user ID đã cấu hình. Codex chạy với full access và không có sandbox hay bước duyệt lệnh của Codex, nên có thể truy cập các file và dịch vụ mà tài khoản macOS của bạn có quyền truy cập. Gửi `/new` để bắt đầu hội thoại Codex mới.
 
 Kiểm tra trạng thái và log:
 

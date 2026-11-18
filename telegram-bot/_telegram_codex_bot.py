@@ -7,6 +7,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -15,6 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ENV_FILE = ROOT / '.env'
 STATE = Path.home() / 'Library/Application Support/qlg-tasks-bot/state.sqlite3'
 CODEX = '/opt/homebrew/bin/codex'
+
+
+def log(message):
+    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}] {message}', flush=True)
 
 
 def config():
@@ -84,6 +89,7 @@ def run_codex(message, thread, env):
     except subprocess.TimeoutExpired:
         proc.kill()
         proc.communicate()
+        log('Codex timed out after 30 minutes.')
         return thread, 'Codex đã hết thời gian xử lý. Hãy kiểm tra trạng thái trước khi thử lại.'
     last = ''
     for line in stdout.splitlines():
@@ -97,7 +103,9 @@ def run_codex(message, thread, env):
         if event.get('type') == 'item.completed' and item.get('type') == 'agent_message':
             last = item.get('text', '')
     if proc.returncode:
+        log(f'Codex exited with code {proc.returncode}.')
         return thread, 'Codex gặp lỗi; kiểm tra log bot trên Mac. Không tự chạy lại tác vụ.'
+    log('Codex finished.')
     return thread, last or 'Codex đã kết thúc nhưng không trả về nội dung.'
 
 
@@ -118,7 +126,7 @@ def main():
     env['PATH'] = '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
     load_github_tokens(env)
     env.pop('TELEGRAM_BOT_TOKEN', None)
-    print('Bot started.', flush=True)
+    log('Bot started.')
     while True:
         try:
             updates = api(token, 'getUpdates', {'offset': int(get('offset') or 0), 'timeout': 30,
@@ -136,16 +144,20 @@ def main():
                 chat_id = chat['id']
                 if text == '/start':
                     send(token, chat_id, 'Xin chào! Hãy gửi yêu cầu để tôi chuyển cho Codex.')
+                    log('Sent welcome message.')
                     continue
                 if text == '/new':
                     put('thread', '')
                     send(token, chat_id, 'Đã bắt đầu cuộc hội thoại mới.')
+                    log('Started a new conversation.')
                     continue
+                log('Received a request; starting Codex.')
                 send(token, chat_id, 'Đã nhận yêu cầu, Codex đang xử lý.')
                 thread, result = run_codex(text, get('thread'), env)
                 if thread:
                     put('thread', thread)
                 send(token, chat_id, result)
+                log('Sent response to Telegram.')
         except (requests.RequestException, RuntimeError, OSError, ValueError) as exc:
             # Do not log request URLs: they contain the bot token.
             print(f'Bot error: {type(exc).__name__}; retrying in 10 seconds.', flush=True)
