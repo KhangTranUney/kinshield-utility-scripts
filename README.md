@@ -33,6 +33,7 @@ CONFLUENCE_TOKEN=
 # Teams: webhook mặc định hoặc webhook theo nhóm
 TEAMS_WEBHOOK_URL=
 TEAMS_WEBHOOK_URL_DEV_OPS=
+
 ```
 
 - **Jira:** `JIRA_BASE_URL`, `JIRA_EMAIL` và `JIRA_API_TOKEN` cần cho script tạo sub-task và báo cáo Jira. `JIRA_BOARD_URL` cho phép chọn sprint/backlog từ board; `JIRA_QA_ASSIGNEE_ID` là ID người được giao QA tùy chọn.
@@ -74,6 +75,8 @@ Cấu hình tương ứng nằm trong `remote-config/configs/`. Service account 
 
 Nếu cần lưu work GitHub token vào `~/.zshrc`, chạy `python3 utilities/setup_work_github_token.py`, nhập token khi được yêu cầu, rồi chạy `source ~/.zshrc`. Script này không dùng `.env` và không kiểm tra token với GitHub.
 
+`local-scripts-backup/pr-merge` cần GitHub CLI `gh` và ít nhất một biến môi trường `GITHUB_TOKEN_MINE` hoặc `GITHUB_TOKEN_ALT`; script không tự đọc `.env` khi chạy trực tiếp từ terminal. Hai token này khác với `WORK_GITHUB_TOKEN`.
+
 `utilities/create_release_branches.py` tìm các repo `kinshield-android`, `kinshield-core-features-android` và `kinshield-features-version-android` trong cùng thư mục cha với repo này. Script thực hiện các thao tác Git, bao gồm commit và push, sau bước xem trước và xác nhận.
 
 ## Chạy script
@@ -88,3 +91,34 @@ python3 remote-config/sync_remote_config.py
 ```
 
 Xem hướng dẫn cụ thể trong `google-billing/billing_setup_guideline.md`, `utilities/create_jira_sub_tasks_stories.md` và các file `.codex/skills/*/SKILL.md` khi dùng những quy trình tương ứng.
+
+## Telegram bot
+
+Thêm các biến sau vào `.env` ở thư mục gốc:
+
+```dotenv
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_ALLOWED_USER_ID=
+```
+
+`TELEGRAM_BOT_TOKEN` là token do BotFather cấp; `TELEGRAM_ALLOWED_USER_ID` là ID số của tài khoản Telegram được phép nhắn riêng với bot, không phải username của bot.
+
+Để merge PR qua bot, export ít nhất một trong `GITHUB_TOKEN_MINE` và `GITHUB_TOKEN_ALT` trong `~/.zshrc`. Khi khởi động, bot chạy `source ~/.zshrc` và truyền hai token này vào môi trường của Codex. Script thử token chính trước, sau đó thử token dự phòng khi phù hợp. Token cần quyền review và merge PR trên các repo liên quan. Thay đổi `~/.zshrc` cần khởi động lại bot.
+
+Cài Codex CLI tại `/opt/homebrew/bin/codex` và đăng nhập Codex trên máy. Kích hoạt môi trường Python đã cài `requests`, sau đó chạy:
+
+```sh
+python3 telegram-bot/start_telegram_bot.py
+```
+
+Lệnh này cài và khởi động bot bằng macOS `launchd`, dùng Python đang chạy lệnh. Chạy lại lệnh sau khi thay đổi `.env` để bot đọc cấu hình mới. Bot chỉ nhận tin nhắn riêng từ user ID đã cấu hình. Codex chạy với full access và không có sandbox hay bước duyệt lệnh của Codex, nên có thể truy cập các file và dịch vụ mà tài khoản macOS của bạn có quyền truy cập. Gửi `/new` để bắt đầu hội thoại Codex mới.
+
+Kiểm tra trạng thái và log:
+
+```sh
+launchctl print gui/$(id -u)/com.qlg.tasks.telegram
+tail -n 50 ~/Library/Logs/qlg-tasks-bot/bot.log
+tail -n 50 ~/Library/Logs/qlg-tasks-bot/error.log
+```
+
+Trạng thái `running` cho biết tiến trình đang chạy; nhắn tin cho bot để kiểm tra kết nối Telegram và Codex.
