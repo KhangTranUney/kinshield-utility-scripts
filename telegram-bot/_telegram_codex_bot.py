@@ -46,6 +46,7 @@ def api(token, method, data, timeout=45):
 
 
 def send(token, chat_id, message):
+    # Keep each plain-text message below Telegram's message length limit.
     for pos in range(0, len(message), 3500):
         api(token, 'sendMessage', {'chat_id': chat_id, 'text': message[pos:pos + 3500]})
 
@@ -55,6 +56,8 @@ def load_github_tokens(env):
     if not (Path(env['HOME']) / '.zshrc').is_file():
         print('GitHub tokens unavailable: ~/.zshrc does not exist.', flush=True)
         return
+    # Sourcing executes the user's shell configuration; discard its output and
+    # use NUL separators to extract only the two tokens without printing them.
     command = ('source "$HOME/.zshrc" >/dev/null 2>&1 || exit 1; '
                'printf "%s\\0%s\\0" "${GITHUB_TOKEN_MINE-}" "${GITHUB_TOKEN_ALT-}"')
     try:
@@ -73,6 +76,8 @@ def load_github_tokens(env):
 
 
 def run_codex(message, thread, env):
+    # Full access is intentional for the configured Telegram workflow. Continue
+    # the same Codex thread so follow-up answers retain their context.
     args = [CODEX, 'exec', '--json', '-C', str(ROOT),
             '--dangerously-bypass-approvals-and-sandbox']
     if thread:
@@ -91,6 +96,8 @@ def run_codex(message, thread, env):
         proc.communicate()
         log('Codex timed out after 30 minutes.')
         return thread, 'Codex đã hết thời gian xử lý. Hãy kiểm tra trạng thái trước khi thử lại.'
+    # JSONL contains lifecycle events as well as messages; send only the final
+    # agent message, and save the thread ID for the next Telegram message.
     last = ''
     for line in stdout.splitlines():
         try:
@@ -123,6 +130,9 @@ def main():
         db.commit()
 
     env = os.environ.copy()
+    # launchd has a minimal PATH. This fixed PATH finds Codex and standard tools,
+    # but does not select the launcher's Python venv for scripts Codex runs.
+    # Activate the venv separately when running those scripts from a terminal.
     env['PATH'] = '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
     load_github_tokens(env)
     env.pop('TELEGRAM_BOT_TOKEN', None)
@@ -136,6 +146,7 @@ def main():
                 put('offset', update['update_id'] + 1)
                 msg = update.get('message', {})
                 chat = msg.get('chat', {})
+                # Accept only private messages from the configured Telegram user ID.
                 if chat.get('type') != 'private' or msg.get('from', {}).get('id') != allowed:
                     continue
                 text = msg.get('text', '').strip()
