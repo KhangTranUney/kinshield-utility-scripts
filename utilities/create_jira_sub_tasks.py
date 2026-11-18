@@ -2,9 +2,11 @@
 
 # Luồng chạy: đọc .env → chọn nguồn ticket → lưu/đọc danh sách ticket
 # → lấy thông tin cha → lập kế hoạch và kiểm tra trùng → xác nhận → tạo trên Jira.
-# Android: 1 Dev + 2 QA; iOS: chỉ 2 QA; có cả Android + iOS hoặc không có: bỏ qua.
+# Android và iOS: 1 Dev + 2 QA; iOS có thể chọn chỉ tạo QA.
+# Có cả Android + iOS hoặc không có: bỏ qua.
 # Các bước xác nhận cho phép dừng trước khi ghi file hoặc tạo sub-task.
 
+import argparse
 import sys
 
 import re
@@ -17,12 +19,11 @@ from helper._interactive_input import confirm_input, read_input
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 ENV_FILE = SCRIPTS_DIR.parent / ".env"
-STORIES_FILE = SCRIPTS_DIR / "create_jira_sub_tasks_stories.md"
+STORIES_FILE = SCRIPTS_DIR / "task_list.md"
 
 # ID field Team, component QA và issue type Sub-task phụ thuộc cấu hình Jira này.
 TEAM_FIELD = "customfield_10361"
-# Tách điều kiện Dev/QA để iOS vẫn có QA nhưng không sinh Dev sub-task.
-DEV_COMPONENTS = {"Android"}
+DEV_COMPONENTS = {"Android", "iOS"}
 QA_COMPONENTS = {"Android", "iOS"}
 QA_COMPONENT = {"id": "11175", "name": "QA"}
 EXCLUDE_ISSUE_TYPES = {"Sub-task", "Spike"}
@@ -177,7 +178,7 @@ def parse_summary_tag(summary):
     return "", summary
 
 
-def build_plan(story, qa_assignee_id=""):
+def build_plan(story, qa_assignee_id="", ios_qa_only=False):
     # Chỉ xây dựng dữ liệu trong bộ nhớ; hàm này không gọi API hay tạo issue.
     # Chỉ xử lý ticket có đúng một nền tảng Android hoặc iOS.
     # Component khác có thể đi kèm, nhưng có cả hai nền tảng thì bỏ qua toàn bộ.
@@ -186,10 +187,13 @@ def build_plan(story, qa_assignee_id=""):
         return []
 
     tasks = []
-    dev_comps = [c for c in story["components"] if c in DEV_COMPONENTS]
+    dev_comps = [
+        c for c in story["components"]
+        if c in DEV_COMPONENTS and not (c == "iOS" and ios_qa_only)
+    ]
 
     for comp in dev_comps:
-        # Chỉ Android thuộc DEV_COMPONENTS. Dev giữ tiêu đề cha với tiền tố [Dev],
+        # Dev giữ tiêu đề cha với tiền tố [Dev],
         # component tương ứng, labels và Team; không truyền assignee khi tạo.
         comp_raw = [c for c in story["components_raw"] if c["name"] == comp]
         tasks.append({
@@ -289,6 +293,12 @@ def write_stories_file(keys):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
+    parser = argparse.ArgumentParser(description="Create Jira sub-tasks for mobile stories.")
+    parser.add_argument(
+        "--ios-qa-only", action="store_true",
+        help="Create only QA sub-tasks for iOS stories (default: false).",
+    )
+    args = parser.parse_args()
     # Bước chuẩn bị: bắt buộc base URL/email/API token; board URL và QA assignee
     # là tùy chọn. requests dùng cặp email/token làm thông tin xác thực Basic Auth.
     env = load_env()
@@ -388,7 +398,7 @@ def main():
     story_plans = []
     problem_stories = []
     for story in stories:
-        plan = build_plan(story, qa_assignee_id)
+        plan = build_plan(story, qa_assignee_id, ios_qa_only=args.ios_qa_only)
         if not plan:
             mobile_components = set(story["components"]) & QA_COMPONENTS
             reason = (

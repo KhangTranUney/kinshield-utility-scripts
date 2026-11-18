@@ -100,7 +100,18 @@ Tạo các sub-task trong Jira:
 python3 utilities/create_jira_sub_tasks.py
 ```
 
-Xem `utilities/create_jira_sub_tasks_stories.md` để biết chi tiết về sub-task.
+Mặc định, ticket có component Android hoặc iOS được tạo 1 sub-task Dev và
+2 sub-task QA. Để iOS chỉ tạo 2 sub-task QA, chạy:
+
+```sh
+python3 utilities/create_jira_sub_tasks.py --ios-qa-only
+```
+
+Bỏ tùy chọn này để tạo cả Dev và QA cho iOS.
+Tùy chọn này không ảnh hưởng đến Android. Ticket có cả Android và iOS hoặc
+không có component nào trong hai loại sẽ được bỏ qua.
+
+Xem `utilities/task_list.md` để biết danh sách ticket.
 
 ### 4.2 Báo cáo tuần
 
